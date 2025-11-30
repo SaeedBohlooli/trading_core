@@ -7,6 +7,7 @@ import logging.handlers
 from trading_core.directory_manager import DirectoryManager
 from trading_core.config_manager import ConfigManager
 from trading_core.logging_manager import LoggingManager
+from trading_core.file_manager import FileManager
 
 
 class Boot:
@@ -29,6 +30,6 @@ class Boot:
             # logging_level=self.app_config.get("logging_level", "INFO")
             logging_level=logging.INFO
         )
-
+        FileManager.set_dirs(self.dirs)
 
         self.logger.info(f"App config loaded: {portfolio_id}, {self.app_config}")

@@ -21,16 +21,16 @@ class DirectoryManager:
         self.ib_dir = f'../../portfolios/ib/{portfolio_id}{alias}'
         self.reports_dir = f'../../portfolios/reports/{portfolio_id}{alias}'
         self.log_dir = f'../../portfolios/logs/{portfolio_id}{alias}/{now}'
-        self.detailed_log_dir = f'../../portfolios/detailed-logs/{portfolio_id}{alias}'
         self.intermediate_dir = f'../../portfolios/intermediate/{portfolio_id}{alias}'
         self.ohlc_dir = f'../../portfolios/backtest-ohlc/{portfolio_id}{alias}'
-        self.charts_dir = f'../../portfolios/charts/{portfolio_id}{alias}'
         self.ohlc_archive_dir = f'../../portfolios/ohlc-archive/{portfolio_id}'
+        self.ohlc_w_indicators_dir = f'../../portfolios/ohlc-w-indicators/{portfolio_id}'
+        self.charts_dir = f'../../portfolios/charts/{portfolio_id}{alias}'
 
         for d in [
             self.portfolio_dir, self.ib_dir, self.reports_dir, self.log_dir,
-            self.detailed_log_dir, self.intermediate_dir, self.ohlc_dir,
-            self.charts_dir, self.ohlc_archive_dir
+            self.intermediate_dir, self.ohlc_dir,
+            self.charts_dir, self.ohlc_archive_dir, self.ohlc_w_indicators_dir
         ]:
             os.makedirs(d, exist_ok=True)
 
@@ -39,11 +39,11 @@ class DirectoryManager:
             ib=self.ib_dir,
             reports=self.reports_dir,
             log_dir=self.log_dir,
-            detailed=self.detailed_log_dir,
             intermediate=self.intermediate_dir,
             ohlc=self.ohlc_dir,
-            charts=self.charts_dir,
-            ohlc_archive=self.ohlc_archive_dir
+            ohlc_archive=self.ohlc_archive_dir,
+            ohlc_w_indicators=self.ohlc_w_indicators_dir,
+            charts=self.charts_dir
         )
 
     def __getattr__(self, item):
