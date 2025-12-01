@@ -30,6 +30,8 @@ class Boot:
             # logging_level=self.app_config.get("logging_level", "INFO")
             logging_level=logging.INFO
         )
-        FileManager.set_dirs(self.dirs)
+
+        FileManager.set_dirs(self.dirs) # Set dirs for FileManager. it needs to know where to read/write files
+        FileManager.set_boot(self) # Set boot for FileManager. it may need access to config or logger
 
         self.logger.info(f"App config loaded: {portfolio_id}, {self.app_config}")

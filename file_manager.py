@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional
 import logging
 import pandas as pd
 logger = logging.getLogger(__name__)
+import time
 
 class FileManager:
     """
@@ -18,6 +19,10 @@ class FileManager:
 
     # Will hold an instance of DirectoryManager (set once in bootstrap)
     dirs = None
+    boot = None
+
+    # internal store of last save timestamp per key
+    _last_df_save_times: dict[str, float] = {}
 
     # Map: df_name -> { folder_attr (DirectoryManager attribute), filename }
     DF_SAVE_MAP: Dict[str, Dict[str, str]] = {
@@ -66,6 +71,10 @@ class FileManager:
         """
         FileManager.dirs = dirs_instance
 
+    @staticmethod
+    def set_boot(boot_instance):
+        FileManager.boot = boot_instance
+
     # ---------- Internal helpers ----------
 
     @staticmethod
@@ -78,6 +87,7 @@ class FileManager:
         If explicit_name is provided, use it.
         Otherwise, try to infer the variable name of `df` in the caller's locals.
         """
+        # TODO just for testing
         if explicit_name:
             return explicit_name
 
@@ -98,6 +108,7 @@ class FileManager:
 
         for var_name, var_value in caller_frame.f_locals.items():
             if var_value is df:
+                logger.info(f"@@@ Auto-detected df_name: {var_name}")
                 return var_name
 
         raise ValueError(
@@ -152,6 +163,7 @@ class FileManager:
             Full path of the written file.
         """
         # Detect df_name if not provided
+        logger.info(f"FileManager.save_my_df called for df_name: {df_name}, file_name: {file_name}, dir: {dir}")
         df_name = FileManager._detect_df_name(df, df_name)
 
         if df_name in FileManager.DF_SAVE_MAP:  # df_name is not here and also dir is not provided
@@ -254,3 +266,35 @@ class FileManager:
 
         with open(full_path, "r") as f:
             return json.load(f)
+
+    @staticmethod
+    def save_my_df_throttled(
+            df: pd.DataFrame,
+            df_name: Optional[str] = None,
+            file_name: Optional[str] = None,
+            dir: Optional[str] = None,
+            min_interval_sec: int = 300,
+            key: Optional[str] = None,
+    ) -> Optional[str]:
+
+        logger.info(f"FileManager.save_my_df_throttled called for df_name: {df_name}, key: {key}")
+        # 2) Throttle logic
+        df_name = FileManager._detect_df_name(df, df_name)
+        throttle_key = key or df_name
+
+        now = time.time()
+        last = FileManager._last_df_save_times.get(throttle_key)
+
+        if last and (now - last) < min_interval_sec:
+            return None
+
+        # 3) Actually save
+        full_path = FileManager.save_my_df(
+            df=df,
+            df_name=df_name,
+            file_name=file_name,
+            dir=dir,
+        )
+
+        FileManager._last_df_save_times[throttle_key] = now
+        return full_path
