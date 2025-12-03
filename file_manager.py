@@ -108,7 +108,7 @@ class FileManager:
 
         for var_name, var_value in caller_frame.f_locals.items():
             if var_value is df:
-                logger.info(f"@@@ Auto-detected df_name: {var_name}")
+                # logger.info(f"@@@ Auto-detected df_name: {var_name}") # TODO always returns df
                 return var_name
 
         raise ValueError(
