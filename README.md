@@ -1,6 +1,8 @@
 # trading_core
 Trading core ...
 
+git submodule add https://github.com/SaeedBohlooli/trading_core.git    trading_core
+
 
 git clone https://github.com/SaeedBohlooli/trading_core.git  
 
