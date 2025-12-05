@@ -3,14 +3,17 @@
 import logging
 import logging.handlers
 import datetime
-
+import os
 
 class LoggingManager:
 
     @staticmethod
-    def setup(log_dir: str, portfolio_id: str, logging_level: str):
+    def setup(log_dir: str, portfolio_id: str, logging_level: str, alias: str = None):
 
-        log_file = f"{log_dir}/{portfolio_id}.log"
+        alias = f'{alias}-' if alias else ''
+
+        file = f'{portfolio_id}{alias}.log'
+        log_file = f"{log_dir}/{file}"
 
         handler = logging.handlers.RotatingFileHandler(
             filename=log_file,

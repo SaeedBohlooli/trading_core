@@ -20,6 +20,8 @@ class Boot:
 
         self.app_config = ConfigManager.load(portfolio_id)
 
+        self.application_state = {} # This will hold the state of the application
+
         # Config
 
 
@@ -35,3 +37,13 @@ class Boot:
         FileManager.set_boot(self) # Set boot for FileManager. it may need access to config or logger
 
         self.logger.info(f"App config loaded: {portfolio_id}, {self.app_config}")
+
+        # Load initial empty state
+        self.application_state = {}
+
+        # Load previous state
+        self.application_state = FileManager.load_named_json("application_state")
+        self.application_state['portfolio_id'] = portfolio_id
+        self.application_state['temp'] = 'Here is in the boot ...'
+
+
