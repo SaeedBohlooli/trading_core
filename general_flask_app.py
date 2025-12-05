@@ -45,14 +45,17 @@ def send_request():
     #
     with state_lock:
          user_input.setdefault('requests', []).append(data)
-#data['flask_request_id']
-    return jsonify({"status": "ok", "flask_request_id": "1"})
+
+    return jsonify({"status": "ok", "flask_request_id":'1'})
 
 
 @app.route("/api/get-all-requests", methods=["GET"])
 def get_application_state():
+    global user_input
     with state_lock:
-        return jsonify(user_input)
+        for_return = user_input.copy()
+        user_input = {}
+        return jsonify(for_return)
 
 
 
@@ -120,7 +123,7 @@ if __name__ == "__main__":
     # ----------------------------------------------
     app.run(
         host=flask_cfg.get("host", "0.0.0.0"),
-        port=flask_cfg.get("port", 5102),
+        port=flask_cfg.get("port", 2222),
         debug=False,
         use_reloader=False
     )
