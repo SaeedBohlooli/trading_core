@@ -263,9 +263,12 @@ class FileManager:
 
         if not os.path.exists(full_path):
             return {}
-
-        with open(full_path, "r") as f:
-            return json.load(f)
+        try:
+            with open(full_path, "r") as f:
+                return json.load(f)
+        except Exception as e:
+            logger.error(f"@@@@ Malformed JSON in file {full_path}: {e}")
+            return {}
 
     @staticmethod
     def save_my_df_throttled(
