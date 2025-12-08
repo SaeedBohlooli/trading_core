@@ -97,14 +97,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     portfolio_id = args.portfolio_id
-    if portfolio_id:
-        # ----------------------------------------------
-        # Load config YAML for this portfolio
-        # ----------------------------------------------
-        config = ConfigManager.load(portfolio_id)
-        flask_cfg = config["flask"]
-    else:
-        flask_cfg = {}
+    if not portfolio_id:
+        print("Please specify a portfolio id like --portfolio-id=p100")
+        exit(1)
+
+    # ----------------------------------------------
+    # Load config YAML for this portfolio
+    # ----------------------------------------------
+    config = ConfigManager.load(portfolio_id)
+    flask_cfg = config["flask"]
 
     logger = LoggingManager.setup(
         log_dir=f'../../portfolios/logs/{portfolio_id}',
