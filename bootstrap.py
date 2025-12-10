@@ -8,22 +8,15 @@ from trading_core.directory_manager import DirectoryManager
 from trading_core.config_manager import ConfigManager
 from trading_core.logging_manager import LoggingManager
 from trading_core.file_manager import FileManager
-
+from trading_core.runtime_manager import RuntimeManager
 
 class Boot:
 
     def __init__(self, portfolio_id: str):
         self.portfolio_id = portfolio_id
-
-        # Directories
         self.dirs = DirectoryManager(portfolio_id, "live")
-
         self.app_config = ConfigManager.load(portfolio_id)
-
         self.application_state = {} # This will hold the state of the application
-
-        # Config
-
 
         # Logging
         self.logger = LoggingManager.setup(
@@ -38,12 +31,11 @@ class Boot:
 
         self.logger.info(f"App config loaded: {portfolio_id}, {self.app_config}")
 
-        # Load initial empty state
-        self.application_state = {}
 
         # Load previous state
         self.application_state = FileManager.load_named_json("application_state")
         self.application_state['portfolio_id'] = portfolio_id
         self.application_state['temp'] = 'Here is in the boot ...'
 
+        self.runtime = RuntimeManager(self)
 
