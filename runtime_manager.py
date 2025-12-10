@@ -34,7 +34,7 @@ class RuntimeManager:
     # -------------------------------------------------------
     # APPLICATION STATE SAVE
     # -------------------------------------------------------
-    def save_app_state(self):
+    def save_application_state(self):
         """Save application_state as JSON."""
         FileManager.save_named_json(self.application_state, "application_state")
         logger.info("[RuntimeManager] Application state saved.")
