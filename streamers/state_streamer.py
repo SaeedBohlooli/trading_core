@@ -23,6 +23,7 @@ class StateStreamer:
                     "data": self.app_state,
                     "timestamp": date_utils.time_now_yyyy_mm_dd_hh_mm_ss(),
                 }
+                logger.info("[StateStreamer] Streaming ....")
 
                 await self.ws.broadcast(packet)
                 logger.info("[StateStreamer] Application state streamed.")

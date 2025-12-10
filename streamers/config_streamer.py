@@ -22,7 +22,7 @@ class ConfigStreamer:
                     "data": self.app_config,
                     "timestamp": date_utils.time_now_yyyy_mm_dd_hh_mm_ss(),
                 }
-
+                logger.info("[ConfigStreamer] App config streaming ....")
                 await self.ws.broadcast(packet)
                 logger.info("[ConfigStreamer] App config streamed.")
 
