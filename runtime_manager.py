@@ -31,13 +31,6 @@ class RuntimeManager:
         logger.info(f"[RuntimeManager] Config reloaded for portfolio {self.portfolio_id}")
         return self.app_config
 
-    # -------------------------------------------------------
-    # APPLICATION STATE SAVE
-    # -------------------------------------------------------
-    def save_application_state(self):
-        """Save application_state as JSON."""
-        FileManager.save_named_json(self.application_state, "application_state")
-        logger.info("[RuntimeManager] Application state saved.")
 
     # -------------------------------------------------------
     # RUN NUMBER / METADATA

@@ -49,7 +49,7 @@ class FileManager:
     JSON_SAVE_MAP: Dict[str, Dict[str, str]] = {
         "application_state": {
             "folder": "intermediate_dir",
-            "filename": "application_state.json",
+            "filename": "xx-application_state.json",
         },
         "stop_loss_events": {
             "folder": "results_dir",
