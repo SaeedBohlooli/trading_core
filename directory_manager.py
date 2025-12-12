@@ -17,15 +17,15 @@ class DirectoryManager:
 
         now = datetime.datetime.now().strftime("%Y-%m-%d")
 
-        self.portfolio_dir = f'../../portfolios/results/{portfolio_id}{alias}'
-        self.ib_dir = f'../../portfolios/ib/{portfolio_id}{alias}'
-        self.reports_dir = f'../../portfolios/reports/{portfolio_id}{alias}'
-        self.log_dir = f'../../portfolios/logs/{portfolio_id}{alias}/{now}'
-        self.intermediate_dir = f'../../portfolios/intermediate/{portfolio_id}{alias}'
-        self.ohlc_dir = f'../../portfolios/backtest-ohlc/{portfolio_id}{alias}'
-        self.ohlc_archive_dir = f'../../portfolios/ohlc-archive/{portfolio_id}'
-        self.ohlc_w_indicators_dir = f'../../portfolios/ohlc-w-indicators/{portfolio_id}'
-        self.charts_dir = f'../../portfolios/charts/{portfolio_id}{alias}'
+        self.portfolio_dir = f'../../portfolios/{portfolio_id}/results-{alias}'
+        self.ib_dir = f'../../portfolios/{portfolio_id}/ib{alias}'
+        self.reports_dir = f'../../portfolios/{portfolio_id}/reports{alias}'
+        self.log_dir = f'../../portfolios/{portfolio_id}/logs{alias}/{now}'
+        self.intermediate_dir = f'../../portfolios/{portfolio_id}/intermediate{alias}'
+        self.ohlc_dir = f'../../portfolios/{portfolio_id}/backtest-ohlc{alias}'
+        self.ohlc_archive_dir = f'../../portfolios/{portfolio_id}/ohlc-archive/{portfolio_id}'
+        self.ohlc_w_indicators_dir = f'../../portfolios/{portfolio_id}/ohlc-w-indicators/{portfolio_id}'
+        self.charts_dir = f'../../portfolios/{portfolio_id}/charts{alias}'
 
         for d in [
             self.portfolio_dir, self.ib_dir, self.reports_dir, self.log_dir,

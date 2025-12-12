@@ -42,7 +42,7 @@ class RuntimeManager:
     # -------------------------------------------------------
     # RUN NUMBER / METADATA
     # -------------------------------------------------------
-    def generate_unique_run(self, run_number: int) -> str:
+    def generate_unique_run_number(self, run_number: int) -> str:
         now = datetime.datetime.now()
         unique = f"{now:%Y%m%d-%H%M%S}-{run_number}"
         self.application_state['unique_run_number'] = unique
