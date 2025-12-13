@@ -31,4 +31,7 @@ class StateStreamer:
                 await asyncio.sleep(self.interval)
 
             except Exception as e:
-                logger.error(f"[StateStreamer] Unexpected error: {e}")
+                logger.error(f"[StateStreamer] @@@@ Unexpected error: {e}")
+                logger.info(f"[StateStreamer] Retrying in 10 seconds...Check the message: {self.app_state} ")
+                await asyncio.sleep(10)
+
