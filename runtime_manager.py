@@ -59,3 +59,7 @@ class RuntimeManager:
     @staticmethod
     def now_timestamp():
         return datetime.datetime.now().strftime("%Y-%m-%d__%H-%M")
+
+    @staticmethod
+    def now_Y_M_D_H_S():
+        return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
