@@ -79,8 +79,8 @@ class TradingEngine:
                 self.app_config = self.runtime.reload_config()
 
                 end_time = time.time()
-                run_spend_time = round(end_time - start_time, 2)
-                logger.warning(f'==================== unique_run_number: {unique_run_number}, run_spent_time: {run_spend_time} seconds, no sleep ...')
+                run_time_spent = round(end_time - start_time, 2)
+                logger.warning(f'==================== unique_run_number: {unique_run_number}, run_spent_time: {run_time_spent} seconds, no sleep ...')
 
                 await asyncio.sleep(self.app_config['interval_seconds']['engine_loop'])
             except Exception as e:
