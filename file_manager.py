@@ -82,8 +82,6 @@ class FileManager:
             )
 
         file_path_template = file_path_template
-        import pprint
-        logger.info(f"FileManager.dirs\n{pprint.pprint(vars(FileManager.dirs))}")
 
         for key, value in FileManager.dirs.paths.__dict__.items(): # ex: ib: ../../portfolios/p106-1/ib
             logger.info(f"_resolve_path, Key: {key}, Value: {value}")  # Debugging line  # Key: results, Value: ../../portfolios/p106-1/results
@@ -91,6 +89,15 @@ class FileManager:
             if k in file_path_template: # e.g.,{result}/screening.csv
                 file_path_template = file_path_template.replace(k, value) # e.g., ../../portfolios/p106-1/results/screening.csv
         return file_path_template
+
+    def _resolve_dir(dir: str) -> str:
+
+        for key, value in FileManager.dirs.paths.__dict__.items(): # ex: ib: ../../portfolios/p106-1/ib
+            logger.info(f"_resolve_path, Key: {key}, Value: {value}")  # Debugging line  # Key: results, Value: ../../portfolios/p106-1/results
+
+            if key == dir: # e.g.,result
+                return value
+        return None
 
     # -------------------------------------------------
     # Unified DataFrame save (with optional throttling)
@@ -100,6 +107,7 @@ class FileManager:
     def save_my_df(
         df: pd.DataFrame,
         df_name: Optional[str] = None,
+        dir: Optional[str] = None,
         min_interval_sec: Optional[int] = None,
     ) -> Optional[str]:
         """
@@ -108,8 +116,8 @@ class FileManager:
         - min_interval_sec=None → always save
         - min_interval_sec=N    → save at most once every N seconds
         """
-
-        df_name = FileManager._detect_df_name(df, df_name)
+        if df_name is None:
+            df_name = FileManager._detect_df_name(df, df_name)
 
         if min_interval_sec is not None:
             now = time.time()
@@ -117,8 +125,13 @@ class FileManager:
             if last and (now - last) < min_interval_sec:
                 return None
 
-        path = FileManager._resolve_path(df_name)
-        FileManager._ensure_parent_dir(path)
+        if dir is None: # is not set, read it ....
+            path = FileManager._resolve_path(df_name)
+            FileManager._ensure_parent_dir(path)
+        else:
+            path = FileManager._resolve_dir(dir)
+
+
         df.to_csv(path, index=False)
 
         FileManager._last_save_times[df_name] = time.time()

@@ -108,7 +108,7 @@ if __name__ == "__main__":
     flask_cfg = config["flask"]
 
     logger = LoggingManager.setup(
-        log_dir=f'../../portfolios/logs/{portfolio_id}',
+        log_dir=f'../../portfolios/{portfolio_id}/logs',
         portfolio_id=portfolio_id,
         logging_level=logging.INFO,
         alias=f"flask"
