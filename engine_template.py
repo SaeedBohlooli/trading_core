@@ -13,7 +13,7 @@ from trading_core.market_data_store import MarketDataStore
 
 from trading_utils import user_request_fetcher
 from trading_utils import user_request_router
-from trading_utils import position_helper
+
 
 class TradingEngine:
 
@@ -22,7 +22,7 @@ class TradingEngine:
         self.logger = boot.logger
         self.app_config = boot.app_config
         self.application_state = boot.application_state
-        self.ws = WSServer(host="0.0.0.0", port=self.app_config.get('ws_port', 6106))
+        self.ws = WSServer(host="0.0.0.0", port=self.app_config.get('ws_port', 6666))
         self.runtime = boot.runtime
         self.market_data = MarketDataStore()
 
@@ -47,7 +47,7 @@ class TradingEngine:
         # self.runtime.save_application_state()
         FileManager.save_named_json(self.application_state, "application_state")
 
-        ib_dir = self.boot.dirs.ib_dir
+        ib_dir = self.boot.dirs.ib
         ib_interval = self.app_config.get('intervals',{}).get('ib_posttrade', 300)
         if self._should_run_save("ib_posttrade", ib_interval, force=force):
             # one place where ib_posttrade is called
@@ -103,7 +103,7 @@ class TradingEngine:
             try:
                 user_request_fetcher.fetch_user_request(self.app_config, self.application_state)
                 user_request_router.process_user_requests(ib, self.app_config, self.application_state)
-                user_request_helper.process_user_requests(self.app_config, self.application_state)
+                #user_request_helper.process_user_requests(self.app_config, self.application_state)
 
                 logger.info("user_request_loop...")
                 await asyncio.sleep(3)

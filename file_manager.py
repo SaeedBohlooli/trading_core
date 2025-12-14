@@ -27,8 +27,8 @@ class FileManager:
     dirs = None
     files_config: Dict[str, str] = {}
 
-    # throttling
-    _last_df_save_times: dict[str, float] = {}
+    # Shared throttling state
+    _last_save_times: dict[str, float] = {}
 
     # -------------------------------------------------
     # Bootstrap wiring
@@ -83,33 +83,45 @@ class FileManager:
 
         path = template
         for key, value in FileManager.dirs.__dict__.items():
-            path = path.replace(f"{{{key}}}", value)
-
+            if isinstance(value, str):
+                path = path.replace(f"{{{key}}}", value)
         return path
 
     # -------------------------------------------------
-    # DataFrame API
+    # Unified DataFrame save (with optional throttling)
     # -------------------------------------------------
 
     @staticmethod
     def save_my_df(
         df: pd.DataFrame,
         df_name: Optional[str] = None,
-        min_rows: int = 0,
-    ) -> str:
+        min_interval_sec: Optional[int] = None,
+    ) -> Optional[str]:
+        """
+        Save DataFrame to CSV.
+
+        - min_interval_sec=None → always save
+        - min_interval_sec=N    → save at most once every N seconds
+        """
+
         df_name = FileManager._detect_df_name(df, df_name)
+
+        if min_interval_sec is not None:
+            now = time.time()
+            last = FileManager._last_save_times.get(df_name)
+            if last and (now - last) < min_interval_sec:
+                return None
+
         path = FileManager._resolve_path(df_name)
-
-        if min_rows and len(df) < min_rows:
-            logger.info(
-                f"Skipping save of '{df_name}' "
-                f"(rows={len(df)} < min_rows={min_rows})"
-            )
-            return path
-
         FileManager._ensure_parent_dir(path)
         df.to_csv(path, index=False)
+
+        FileManager._last_save_times[df_name] = time.time()
         return path
+
+    # -------------------------------------------------
+    # Load DataFrame
+    # -------------------------------------------------
 
     @staticmethod
     def load_my_df(df_name: str) -> pd.DataFrame:
@@ -119,11 +131,28 @@ class FileManager:
         return pd.read_csv(path)
 
     # -------------------------------------------------
-    # JSON API
+    # JSON save/load (with optional throttling)
     # -------------------------------------------------
 
     @staticmethod
-    def save_named_json(data: Any, name: str) -> str:
+    def save_named_json(
+        data: Any,
+        name: str,
+        min_interval_sec: Optional[int] = None,
+    ) -> Optional[str]:
+        """
+        Save JSON data to disk.
+
+        - min_interval_sec=None → always save
+        - min_interval_sec=N    → save at most once every N seconds
+        """
+
+        if min_interval_sec is not None:
+            now = time.time()
+            last = FileManager._last_save_times.get(name)
+            if last and (now - last) < min_interval_sec:
+                return None
+
         path = FileManager._resolve_path(name)
         FileManager._ensure_parent_dir(path)
 
@@ -132,6 +161,8 @@ class FileManager:
             json.dump(data, f, indent=2, default=str)
 
         os.replace(tmp, path)
+
+        FileManager._last_save_times[name] = time.time()
         return path
 
     @staticmethod
@@ -139,34 +170,10 @@ class FileManager:
         path = FileManager._resolve_path(name)
         if not os.path.exists(path):
             return {}
+
         try:
             with open(path, "r") as f:
                 return json.load(f)
         except Exception as e:
             logger.error(f"Malformed JSON in {path}: {e}")
             return {}
-
-    # -------------------------------------------------
-    # Throttled save
-    # -------------------------------------------------
-
-    @staticmethod
-    def save_my_df_throttled(
-        df: pd.DataFrame,
-        df_name: Optional[str] = None,
-        min_interval_sec: int = 300,
-        key: Optional[str] = None,
-    ) -> Optional[str]:
-
-        df_name = FileManager._detect_df_name(df, df_name)
-        throttle_key = key or df_name
-
-        now = time.time()
-        last = FileManager._last_df_save_times.get(throttle_key)
-
-        if last and (now - last) < min_interval_sec:
-            return None
-
-        path = FileManager.save_my_df(df, df_name)
-        FileManager._last_df_save_times[throttle_key] = now
-        return path
