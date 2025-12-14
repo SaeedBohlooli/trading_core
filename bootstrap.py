@@ -14,8 +14,18 @@ class Boot:
 
     def __init__(self, portfolio_id: str):
         self.portfolio_id = portfolio_id
-        self.dirs = DirectoryManager(portfolio_id, "live")
+
+        # 1) Load config FIRST
         self.app_config = ConfigManager.load(portfolio_id)
+
+        # 2) Then build dirs using config
+        self.dirs = DirectoryManager(
+            portfolio_id=portfolio_id,
+            mode="live",
+            app_config=self.app_config,
+        )
+
+
         self.application_state = {} # This will hold the state of the application
 
         # Logging
@@ -26,8 +36,11 @@ class Boot:
             logging_level=logging.INFO
         )
 
-        FileManager.set_dirs(self.dirs) # Set dirs for FileManager. it needs to know where to read/write files
-        FileManager.set_boot(self) # Set boot for FileManager. it may need access to config or logger
+        FileManager.set_dirs(self.dirs)
+        FileManager.set_files_config(self.app_config["files"])
+
+        # The reason we are not creating obejt is
+        # this FileManager.save_my_df(df) will be  boot.file_manager.save_my_df(df)
 
         self.logger.info(f"App config loaded: {portfolio_id}, {self.app_config}")
 
