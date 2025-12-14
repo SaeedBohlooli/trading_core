@@ -9,6 +9,7 @@ from trading_core.config_manager import ConfigManager
 from trading_core.logging_manager import LoggingManager
 from trading_core.file_manager import FileManager
 from trading_core.runtime_manager import RuntimeManager
+from trading_core.data_saver_manager import DataSaverManager
 
 class Boot:
 
@@ -26,7 +27,6 @@ class Boot:
         )
 
 
-        self.application_state = {} # This will hold the state of the application
 
         # Logging
         self.logger = LoggingManager.setup(
@@ -47,8 +47,16 @@ class Boot:
 
         # Load previous state
         self.application_state = FileManager.load_named_json("application_state")
+
+        self.data_saver_manager = DataSaverManager(
+            ib_dir=self.dirs.ib,
+            app_config=self.app_config,
+            application_state=self.application_state,
+        )
+
+
         self.application_state['portfolio_id'] = portfolio_id
-        self.application_state['temp'] = 'Here is in the boot ...'
+        self.application_state['temp'] = 'Here is in the Boot'
 
         self.runtime = RuntimeManager(self)
 

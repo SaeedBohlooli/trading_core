@@ -75,17 +75,22 @@ class FileManager:
         if name not in FileManager.files_config:
             raise ValueError(f"File '{name}' not found in config files section.")
 
-        template = FileManager.files_config[name]
-        if not isinstance(template, str):
+        file_path_template = FileManager.files_config[name]  # e.g., "{results}/screening.csv"
+        if not isinstance(file_path_template, str):
             raise TypeError(
                 f"File '{name}' must be defined as a string path."
             )
 
-        path = template
-        for key, value in FileManager.dirs.__dict__.items():
-            if isinstance(value, str):
-                path = path.replace(f"{{{key}}}", value)
-        return path
+        file_path_template = file_path_template
+        import pprint
+        logger.info(f"FileManager.dirs\n{pprint.pprint(vars(FileManager.dirs))}")
+
+        for key, value in FileManager.dirs.paths.__dict__.items(): # ex: ib: ../../portfolios/p106-1/ib
+            logger.info(f"_resolve_path, Key: {key}, Value: {value}")  # Debugging line  # Key: results, Value: ../../portfolios/p106-1/results
+            k = "{" + key + "}"   # e.g., {results}
+            if k in file_path_template: # e.g.,{result}/screening.csv
+                file_path_template = file_path_template.replace(k, value) # e.g., ../../portfolios/p106-1/results/screening.csv
+        return file_path_template
 
     # -------------------------------------------------
     # Unified DataFrame save (with optional throttling)
