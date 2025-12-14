@@ -17,7 +17,7 @@ class FileManager:
     Config format (ONLY supported format):
 
     files:
-      scaning_df: "{intermediate}/scaning.csv"
+      scanning_df: "{intermediate}/scanning.csv"
       application_state: "{intermediate}/application_state.json"
 
     Directories come from DirectoryManager and are injected at boot.
@@ -75,7 +75,7 @@ class FileManager:
         if name not in FileManager.files_config:
             raise ValueError(f"File '{name}' not found in config files section.")
 
-        file_path_template = FileManager.files_config[name]  # e.g., "{results}/scaning.csv"
+        file_path_template = FileManager.files_config[name]  # e.g., "{results}/scanning.csv"
         if not isinstance(file_path_template, str):
             raise TypeError(
                 f"File '{name}' must be defined as a string path."
@@ -86,8 +86,8 @@ class FileManager:
         for key, value in FileManager.dirs.paths.__dict__.items(): # ex: ib: ../../portfolios/p106-1/ib
             logger.info(f"_resolve_path, Key: {key}, Value: {value}")  # Debugging line  # Key: results, Value: ../../portfolios/p106-1/results
             k = "{" + key + "}"   # e.g., {results}
-            if k in file_path_template: # e.g.,{result}/scaning.csv
-                file_path_template = file_path_template.replace(k, value) # e.g., ../../portfolios/p106-1/results/scaning.csv
+            if k in file_path_template: # e.g.,{result}/scanning.csv
+                file_path_template = file_path_template.replace(k, value) # e.g., ../../portfolios/p106-1/results/scanning.csv
         return file_path_template
 
     def _resolve_dir(dir: str) -> str:
