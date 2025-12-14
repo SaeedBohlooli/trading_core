@@ -31,18 +31,11 @@ class RuntimeManager:
         logger.info(f"[RuntimeManager] Config reloaded for portfolio {self.portfolio_id}")
         return self.app_config
 
-    # -------------------------------------------------------
-    # APPLICATION STATE SAVE
-    # -------------------------------------------------------
-    def save_application_state(self):
-        """Save application_state as JSON."""
-        FileManager.save_named_json(self.application_state, "application_state")
-        logger.info("[RuntimeManager] Application state saved.")
 
     # -------------------------------------------------------
     # RUN NUMBER / METADATA
     # -------------------------------------------------------
-    def generate_unique_run(self, run_number: int) -> str:
+    def generate_unique_run_number(self, run_number: int) -> str:
         now = datetime.datetime.now()
         unique = f"{now:%Y%m%d-%H%M%S}-{run_number}"
         self.application_state['unique_run_number'] = unique
