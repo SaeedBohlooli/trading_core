@@ -6,7 +6,7 @@ from trading_utils import user_request_fetcher
 
 
 
-async def user_request_loop(app_config, application_state, interval_sec=3):
+async def fetch_user_request_loop(app_config, application_state, interval_sec=3):
     while True:
         try:
             user_request_fetcher.fetch_user_request(app_config, application_state)

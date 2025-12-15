@@ -11,7 +11,7 @@ from trading_core.streamers.config_streamer import ConfigStreamer
 from trading_core.ib_connector import IBConnector
 from trading_core.market_data_store import MarketDataStore
 from trading_core import market_session_guard
-from trading_core import user_request_x
+from trading_core import user_request_loop
 
 from trading_utils import user_request_router
 from trading_utils import position_helper
@@ -74,7 +74,7 @@ class TradingEngine:
             state_streamer.run(),
             config_streamer.run(),
             self.engine_loop(ib),
-            user_request_x.user_request_loop(self.app_config, self.application_state),
+            user_request_loop.fetch_user_request_loop(self.app_config, self.application_state),
             self.boot.data_saver_manager.run(ib),
             market_session_guard.market_session_guard_loop(ib, self.application_state)
         )
