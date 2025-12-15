@@ -57,7 +57,7 @@ class DataSaverManager:
         while True:
             try:
                 if self.application_state.get("is_busy_time", False):
-                    logger.info("[DataSaverManager] Busy time → skipping save")
+                    logger.info("[DataSaverManager] Busy time ... skipping save")
                     await asyncio.sleep(30)
                     continue
 
