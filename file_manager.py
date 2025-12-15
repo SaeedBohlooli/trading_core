@@ -107,6 +107,7 @@ class FileManager:
     def save_my_df(
         df: pd.DataFrame,
         df_name: Optional[str] = None,
+        file_name: Optional[str] = None,
         dir: Optional[str] = None,
         min_interval_sec: Optional[int] = None,
     ) -> Optional[str]:
@@ -129,7 +130,8 @@ class FileManager:
             path = FileManager._resolve_path(df_name)
             FileManager._ensure_parent_dir(path)
         else:
-            path = FileManager._resolve_dir(dir)
+            dir_resolved = FileManager._resolve_dir(dir)
+            path = os.path.join(dir_resolved, file_name)
 
 
         df.to_csv(path, index=False)
