@@ -73,7 +73,7 @@ class FileManager:
     @staticmethod
     def _resolve_path(name: str) -> str:
         if name not in FileManager.files_config:
-            file_path_template = '{defaul}/' + name  # e.g., "{default}/scanning.csv"
+            file_path_template = '{default}/' + name  # e.g., "{default}/scanning.csv"
         else:
             file_path_template = FileManager.files_config[name]  # e.g., "{results}/scanning.csv"
         if not isinstance(file_path_template, str):
