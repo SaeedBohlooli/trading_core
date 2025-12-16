@@ -4,7 +4,7 @@ import inspect
 import logging
 import time
 from typing import Any, Dict, Optional
-
+from trading_utils import df_utils
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -110,6 +110,10 @@ class FileManager:
         file_name: Optional[str] = None,
         dir: Optional[str] = None,
         min_interval_sec: Optional[int] = None,
+        mode: str = "w",
+        save_tabular: bool = False,
+        drop_duplicates: bool = False,
+        unique_subset: Optional[list] = None,
     ) -> Optional[str]:
         """
         Save DataFrame to CSV.
@@ -117,6 +121,17 @@ class FileManager:
         - min_interval_sec=None → always save
         - min_interval_sec=N    → save at most once every N seconds
         """
+        if type(df) is not pd.DataFrame:
+            try:
+                logger.info(f"we are converting df to pd.DataFrame, type(df): {type(df)}")
+                df = pd.DataFrame(df)
+            except Exception as e:
+                logger.error(f"FileManager.save_my_df: Failed to convert df to pd.DataFrame: {e}")
+                return None
+        if df is None or df.empty:
+            logger.warning("FileManager.save_my_df: Empty df, nothing to save.")
+            return None
+
         if df_name is None:
             df_name = FileManager._detect_df_name(df, df_name)
 
@@ -134,8 +149,14 @@ class FileManager:
             path = os.path.join(dir_resolved, file_name)
 
         logger.info(f"[FileManager], Saving DataFrame '{df_name}' to path: {path}")
-        df.to_csv(path, index=False)
-
+        df_utils.save_df_to_csv(
+            df=df,
+            file_path=path,
+            mode=mode ,
+            drop_dupplicates=drop_duplicates,
+            unique_columns=unique_subset if unique_subset else [],
+            tabular=save_tabular,
+        )
         FileManager._last_save_times[df_name] = time.time()
         return path
 
