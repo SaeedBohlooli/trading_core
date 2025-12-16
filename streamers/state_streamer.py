@@ -10,13 +10,14 @@ class StateStreamer:
     Reusable across all projects.
     """
 
-    def __init__(self, app_state, ws_server, interval=5):
+    def __init__(self, app_config, app_state, ws_server, interval=5):
+        self.app_config = app_config
         self.app_state = app_state
         self.ws = ws_server
-        self.interval = interval
 
     async def run(self):
         while True:
+            self.interval = self.app_state.get('interval_seconds',{}).get('state_streamer', 10)
             try:
                 packet = {
                     "type": "application_state",
@@ -33,5 +34,5 @@ class StateStreamer:
             except Exception as e:
                 logger.error(f"[StateStreamer] @@@@ Unexpected error: {e}")
                 logger.info(f"[StateStreamer] Retrying in 10 seconds...Check the message: {self.app_state} ")
-                await asyncio.sleep(10)
+                await asyncio.sleep(self.interval)
 

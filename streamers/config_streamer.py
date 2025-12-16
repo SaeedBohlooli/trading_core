@@ -16,6 +16,7 @@ class ConfigStreamer:
 
     async def run(self):
         while True:
+            self.interval = self.app_config.get('interval_seconds',{}).get('state_streamer', 10)
             try:
                 packet = {
                     "type": "app_config",
@@ -32,5 +33,5 @@ class ConfigStreamer:
                 logger.error(f"[ConfigStreamer] @@@@ Unexpected error: {e}")
                 logger.info(f"[ConfigStreamer] Retrying in 10 seconds...Check the message: {self.app_config} ")
 
-                await asyncio.sleep(10)
+                await asyncio.sleep(self.interval)
 
