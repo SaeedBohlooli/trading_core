@@ -65,7 +65,7 @@ class DataSaverManager:
                 await asyncio.sleep(interval_sec)
 
             except asyncio.CancelledError:
-                logger.info("[DataSaverManager] Cancelled → exiting loop")
+                logger.info("[DataSaverManager] Cancelled exiting loop")
                 raise
 
             except Exception:
