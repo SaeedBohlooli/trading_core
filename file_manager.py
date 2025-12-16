@@ -133,7 +133,7 @@ class FileManager:
             dir_resolved = FileManager._resolve_dir(dir)
             path = os.path.join(dir_resolved, file_name)
 
-
+        logger.info(f"[FileManager], Saving DataFrame '{df_name}' to path: {path}")
         df.to_csv(path, index=False)
 
         FileManager._last_save_times[df_name] = time.time()
