@@ -2,6 +2,8 @@ import datetime
 import logging
 from trading_core.file_manager import FileManager
 from trading_core.config_manager import ConfigManager
+from trading_utils import config_utils
+from trading_utils import ruamel_confg_util
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +42,28 @@ class RuntimeManager:
         unique = f"{now:%Y%m%d-%H%M%S}-{run_number}"
         self.application_state['unique_run_number'] = unique
         return unique
+
+    # -------------------------------------------------------
+    # RUNTIME CONTROL (EXIT, PAUSE, ETC.)
+    # -------------------------------------------------------
+    def reload_runtime_config(self):
+        """
+        Load runtime control flags (exit, pause, etc)
+        and project them into application_state.
+        """
+        try:
+            runtime_cfg = config_utils.load_runtime_config(self.application_state.get("portfolio_id"))
+        except FileNotFoundError:
+            runtime_cfg = {}
+
+        if runtime_cfg.get('exit', False) == True:
+            ruamel_confg_util.update_runtime_config_and_save(self.application_state.get('portfolio_id'),'exit', False)
+            engine_state = self.application_state.setdefault("engine", {})
+
+            engine_state["exit_requested"] = True
+            engine_state["exit_requested_at"] = self.now_Y_M_D_H_S()
+
+        return runtime_cfg
 
     # -------------------------------------------------------
     # HELPERS
