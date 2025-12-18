@@ -114,6 +114,7 @@ class FileManager:
         save_tabular: bool = False,
         drop_duplicates: bool = False,
         unique_subset: Optional[list] = None,
+        keep: str = "last", # for drop_duplicates
     ) -> Optional[str]:
         """
         Save DataFrame to CSV.
@@ -123,13 +124,20 @@ class FileManager:
         """
         if type(df) is not pd.DataFrame:
             try:
-                logger.info(f"we are converting df to pd.DataFrame, type(df): {type(df)}")
-                df = pd.DataFrame(df)
+                logger.info(f"we are converting {df_name} to pd.DataFrame, type(df): {type(df)}")
+                if isinstance(df, dict):
+                    # one logical row
+                    df =  pd.DataFrame([df])
+
+                if isinstance(df, list):
+                    # list of rows (dicts)
+                    df =  pd.DataFrame(df)
             except Exception as e:
-                logger.error(f"FileManager.save_my_df: Failed to convert df to pd.DataFrame: {e}")
+                logger.error(f"FileManager.save_my_df: Failed to convert {df_name} to pd.DataFrame: {e}")
                 return None
+
         if df is None or df.empty:
-            logger.warning("FileManager.save_my_df: Empty df, nothing to save.")
+            logger.warning(f"FileManager.save_my_df: Empty df {df_name}, nothing to save.")
             return None
 
         if df_name is None:
@@ -156,6 +164,7 @@ class FileManager:
             drop_dupplicates=drop_duplicates,
             unique_columns=unique_subset if unique_subset else [],
             tabular=save_tabular,
+            keep=keep
         )
         FileManager._last_save_times[df_name] = time.time()
         return path
