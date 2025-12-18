@@ -211,6 +211,7 @@ class FileManager:
             json.dump(data, f, indent=2, default=str)
 
         os.replace(tmp, path)
+        logger.info(f"[FileManager], Saving JSON '{name}' to path: {path}")
 
         FileManager._last_save_times[name] = time.time()
         return path

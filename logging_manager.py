@@ -9,7 +9,7 @@ class LoggingManager:
 
     @staticmethod
     def setup(log_dir: str, portfolio_id: str, logging_level: str, alias: str = None):
-
+        os.makedirs(log_dir, exist_ok=True)
         alias = f'{alias}-' if alias else ''
 
         file = f'{portfolio_id}{alias}.log'
