@@ -79,3 +79,15 @@ def is_trading_hours_based_on_config(app_config, application_state):
         return True
     else:
         return False
+
+def can_do_trade_now(app_config, application_state):
+    """Determine if trading can be done now based on config and state."""
+    now = datetime.datetime.now()
+    current_hh_mm_ny = int(now.strftime("%H%M"))  # used in config
+    trading_hours_cond = app_config.get('market').get('trading_hours')
+    market_is_open = application_state.get('market_session', {}).get('is_open', False)
+
+    if eval(trading_hours_cond) and market_is_open:
+        return True
+
+    return False
