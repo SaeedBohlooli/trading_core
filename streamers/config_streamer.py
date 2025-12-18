@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from trading_utils import date_utils
-
+from trading_core import engine_cycle
 logger = logging.getLogger(__name__)
 
 class ConfigStreamer:
@@ -9,13 +9,17 @@ class ConfigStreamer:
     Streams the application config to WebSocket clients.
     """
 
-    def __init__(self, app_config, ws_server, interval=12):
+    def __init__(self, app_config, application_state, ws_server, interval=12):
         self.app_config = app_config
+        self.application_state = application_state
         self.ws = ws_server
         self.interval = interval
 
     async def run(self):
         while True:
+            if engine_cycle.should_exit(application_state=self.application_state):
+                logger.info("[ConfigStreamer] Exiting as requested.")
+                break
             self.interval = self.app_config.get('interval_seconds',{}).get('state_streamer', 10)
             try:
                 packet = {

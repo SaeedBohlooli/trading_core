@@ -6,7 +6,7 @@ from typing import Dict, Any
 
 from trading_core.file_manager import FileManager
 from trading_utils import ib_posttrade
-
+from trading_core import engine_cycle
 logger = logging.getLogger(__name__)
 
 
@@ -55,6 +55,9 @@ class DataSaverManager:
     # -------------------------------------------------
     async def run(self, ib, interval_sec: int = 300) -> None:
         while True:
+            if engine_cycle.should_exit(application_state=self.application_state):
+                logger.info("[market_session_guard_loop] Exiting as requested.")
+                break
             try:
                 if self.application_state.get("is_busy_time", False):
                     logger.info("[DataSaverManager] Busy time ... skipping save")

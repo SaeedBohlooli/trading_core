@@ -1,11 +1,17 @@
+import logging
+logger = logging.getLogger(__name__)
+
 import asyncio
 from datetime import datetime, timezone
 from pathlib import Path
 from ib_async import IB
 from trading_core.file_manager import FileManager
 import os
+from trading_core import engine_cycle
+
 async def ib_heartbeat_loop(
     ib: IB,
+    application_state = None,
     heartbeat_file: str = None,
     interval_seconds: int = 30,
 ):
@@ -24,6 +30,9 @@ async def ib_heartbeat_loop(
 
     while True:
         try:
+            if engine_cycle.should_exit(application_state=application_state):
+                logger.info("[market_session_guard_loop] Exiting as requested.")
+                break
             # 1) Basic connection check
             if not ib.isConnected():
                 # IB is not connected → do NOT write heartbeat

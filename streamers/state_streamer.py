@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from trading_utils import date_utils
-
+from trading_core import engine_cycle
 logger = logging.getLogger(__name__)
 
 class StateStreamer:
@@ -17,6 +17,9 @@ class StateStreamer:
 
     async def run(self):
         while True:
+            if engine_cycle.should_exit(application_state=self.app_state):
+                logger.info("[StateStreamer] Exiting as requested.")
+                break
             self.interval = self.app_state.get('interval_seconds',{}).get('state_streamer', 10)
             try:
                 packet = {

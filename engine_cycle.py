@@ -15,8 +15,12 @@ async def shutdown(ib,ws):
 
     try:
         logger.info("Stopping WebSocket server...")
-        await ws.stop()
+        # await ws.stop()
     except Exception as e:
         logger.error(f"Error stopping WS: {e}")
 
     logger.warning("TradingEngine shutdown complete")
+
+
+def should_exit(application_state):
+    return application_state.get("engine", {}).get("exit_requested", False)

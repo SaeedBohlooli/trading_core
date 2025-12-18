@@ -3,7 +3,7 @@ import logging
 import datetime
 
 from trading_utils import market_session
-
+from trading_core import engine_cycle
 logger = logging.getLogger(__name__)
 
 
@@ -14,6 +14,9 @@ async def market_session_guard_loop(ib, application_state, interval_sec=600):
     - runs independently from engine loop
     """
     while True:
+        if engine_cycle.should_exit(application_state=application_state):
+            logger.info("[MarketSession] Exiting as requested.")
+            break
         try:
             await refresh_market_session_if_needed(ib, application_state)
         except Exception as e:
