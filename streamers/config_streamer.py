@@ -20,7 +20,7 @@ class ConfigStreamer:
             if engine_cycle.should_exit(application_state=self.application_state):
                 logger.info("[ConfigStreamer] Exiting as requested.")
                 break
-            self.interval = self.app_config.get('interval_seconds',{}).get('state_streamer', 10)
+            self.interval = self.app_config.get('interval_seconds',{}).get('application_state_streamer', 5)
             try:
                 packet = {
                     "type": "app_config",
