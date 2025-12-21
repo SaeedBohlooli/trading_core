@@ -12,7 +12,7 @@ from trading_core import engine_cycle
 async def ib_heartbeat_loop(
     ib: IB,
     application_state = None,
-    heartbeat_file: str = None,
+    ib_heartbeat_file: str = None,
     interval_seconds: int = 30,
 ):
     """
@@ -23,10 +23,12 @@ async def ib_heartbeat_loop(
     - Does NOT create a new IB client
     - Safe to run continuously
     """
-    if heartbeat_file is None:
-        heartbeat_file = os.path.join(FileManager.dirs.ib, "heartbeat.log")
+    if ib_heartbeat_file is None:
+        ib_heartbeat_file = os.path.join(FileManager.dirs.heartbeat, "ib_heartbeat.log")
+    app_heartbeat_file = os.path.join(FileManager.dirs.heartbeat, "app_heartbeat.log")
 
-    path = Path(heartbeat_file)
+    ib_hb_path = Path(ib_heartbeat_file)
+    app_hb_path = Path(app_heartbeat_file)
 
     while True:
         try:
@@ -34,8 +36,14 @@ async def ib_heartbeat_loop(
                 logger.info("[market_session_guard_loop] Exiting as requested.")
                 break
             # 1) Basic connection check
+
+            logger.info(f"IB Heartbeat Loop: Checking IB connection...")
+            ts = datetime.now(timezone.utc).isoformat()
+            app_hb_path.write_text(ts)  # write app heartbeat
+
             if not ib.isConnected():
                 # IB is not connected → do NOT write heartbeat
+                logger.warning(f"@@@@@  IB Heartbeat Loop: IB not connected, skipping heartbeat write.")
                 await asyncio.sleep(interval_seconds)
                 continue
 
@@ -43,8 +51,10 @@ async def ib_heartbeat_loop(
             await ib.reqCurrentTimeAsync()
 
             # 3) Write heartbeat (UTC ISO timestamp)
-            ts = datetime.now(timezone.utc).isoformat()
-            path.write_text(ts)
+
+            ib_hb_path.write_text(ts)
+            logger.info(f"IB Heartbeat Loop: Wrote heartbeat to {ib_heartbeat_file}")
+            logger.info
 
         except Exception:
             # Any exception → skip heartbeat this round
