@@ -1,4 +1,7 @@
 import logging
+
+from flask import Config
+
 logger = logging.getLogger(__name__)
 
 import asyncio
@@ -8,9 +11,11 @@ from ib_async import IB
 from trading_core.file_manager import FileManager
 import os
 from trading_core import engine_cycle
+from trading_core.ib_connector import IBConnector
 
 async def ib_heartbeat_loop(
     ib: IB,
+    app_config =None,
     application_state = None,
     ib_heartbeat_file: str = None,
     interval_seconds: int = 30,
@@ -44,6 +49,7 @@ async def ib_heartbeat_loop(
             if not ib.isConnected():
                 # IB is not connected → do NOT write heartbeat
                 logger.warning(f"@@@@@  IB Heartbeat Loop: IB not connected, skipping heartbeat write.")
+                ib = await IBConnector.connect_from_config(app_config, max_attempts=5)
                 await asyncio.sleep(interval_seconds)
                 continue
 

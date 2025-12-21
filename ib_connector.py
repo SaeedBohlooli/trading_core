@@ -14,10 +14,10 @@ class IBConnector:
     """
 
     @staticmethod
-    async def connect(ip: str, port: int, client_id: int):
+    async def connect(ip: str, port: int, client_id: int, max_attempts=None ):
         logger.info(f"[IBConnector] Connecting to IB on {ip}:{port}, client_id={client_id}")
 
-        ib = await ib_utils_async.create_ib_async(ip, port, client_id=client_id)
+        ib = await ib_utils_async.create_ib_async(ip, port, client_id=client_id, max_attempts=max_attempts)
 
         # Register standard event handlers
         ib.commissionReportEvent += ib_posttrade.on_commission_report
@@ -27,7 +27,7 @@ class IBConnector:
         return ib
 
     @staticmethod
-    async def connect_from_config(app_config: dict):
+    async def connect_from_config(app_config: dict, max_attempts= None):
         """
         Convenience method to connect using app_config.
         """
@@ -35,4 +35,4 @@ class IBConnector:
         port = app_config["port"]
         client_id = app_config["client_id"]
 
-        return await IBConnector.connect(ip, port, client_id)
+        return await IBConnector.connect(ip, port, client_id, max_attempts=max_attempts)
