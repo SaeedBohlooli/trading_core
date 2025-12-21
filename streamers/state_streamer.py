@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import pprint
+
 from trading_utils import date_utils
 from trading_core import engine_cycle
 logger = logging.getLogger(__name__)
@@ -28,6 +30,7 @@ class StateStreamer:
                     "timestamp": date_utils.time_now_yyyy_mm_dd_hh_mm_ss(),
                 }
                 logger.info("[StateStreamer] Streaming ....")
+                # print(pprint.pformat(packet))
 
                 await self.ws.broadcast(packet)
                 logger.info("[StateStreamer] Application state streamed.")
