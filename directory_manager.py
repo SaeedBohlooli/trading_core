@@ -19,7 +19,7 @@ paths.log_dir
 
 class DirectoryManager:
 
-    def __init__(self, portfolio_id: str, mode: str, app_config: dict, alias: str | None = None):
+    def __init__(self, portfolio_id: str, app_config: dict, mode: str= 'live',alias: str | None = None):
         logger.info(f"Initializing DirectoryManager")
 
 
