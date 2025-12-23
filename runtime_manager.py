@@ -4,7 +4,8 @@ from trading_core.file_manager import FileManager
 from trading_core.config_manager import ConfigManager
 from trading_utils import config_utils
 from trading_utils import ruamel_confg_util
-
+from typing import Dict
+import time
 logger = logging.getLogger(__name__)
 
 class RuntimeManager:
@@ -16,6 +17,8 @@ class RuntimeManager:
       - attaching runtime metadata
     Reusable for ALL engines.
     """
+    _last_update_times: Dict[str, float] = {}
+    DEFAULT_INTERVAL = 60.0  # seconds
 
     def __init__(self, boot):
         self.boot = boot
@@ -23,6 +26,18 @@ class RuntimeManager:
         self.app_config = boot.app_config
         self.application_state = boot.application_state
 
+    @classmethod
+    def is_due(cls, key: str, interval: float | None = None) -> bool:
+        now = time.time()
+        interval = interval or cls.DEFAULT_INTERVAL
+
+        last = cls._last_update_times.get(key, 0.0)
+        if now - last >= interval:
+            logger.info(f"[RuntimeManager] {key} is due, now-last: {now-last}")
+            cls._last_update_times[key] = now
+            return True
+
+        return False
     # -------------------------------------------------------
     # CONFIG HANDLING
     # -------------------------------------------------------

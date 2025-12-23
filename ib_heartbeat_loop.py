@@ -38,7 +38,7 @@ async def ib_heartbeat_loop(
     while True:
         try:
             if engine_cycle.should_exit(application_state=application_state):
-                logger.info("[market_session_guard_loop] Exiting as requested.")
+                logger.info("[IB Heartbeat Loop] Exiting as requested.")
                 break
             # 1) Basic connection check
 
@@ -60,11 +60,10 @@ async def ib_heartbeat_loop(
 
             ib_hb_path.write_text(ts)
             logger.info(f"IB Heartbeat Loop: Wrote heartbeat to {ib_heartbeat_file}")
-            logger.info
 
-        except Exception:
+        except Exception as ex:
             # Any exception → skip heartbeat this round
             # Engine can decide how to react elsewhere
-            pass
+            logger.warning(f"@@@ IB Heartbeat Loop {ex}")
 
         await asyncio.sleep(interval_seconds)
