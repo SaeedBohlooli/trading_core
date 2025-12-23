@@ -187,7 +187,9 @@ class FileManager:
     @staticmethod
     def save_named_json(
         data: Any,
-        name: str,
+        name: str = None,
+        dir: Optional[str] = None,
+        file_name: Optional[str] = None,
         min_interval_sec: Optional[int] = None,
     ) -> Optional[str]:
         """
@@ -203,8 +205,12 @@ class FileManager:
             if last and (now - last) < min_interval_sec:
                 return None
 
-        path = FileManager._resolve_path(name)
-        FileManager._ensure_parent_dir(path)
+        if dir is None: # is not set, read it ....
+            path = FileManager._resolve_path(name)
+            FileManager._ensure_parent_dir(path)
+        else:
+            dir_resolved = FileManager._resolve_dir(dir)
+            path = os.path.join(dir_resolved, file_name )
 
         tmp = path + ".tmp"
         with open(tmp, "w") as f:
@@ -217,8 +223,16 @@ class FileManager:
         return path
 
     @staticmethod
-    def load_named_json(name: str) -> Any:
-        path = FileManager._resolve_path(name)
+    def load_named_json(name: str= None,
+                        file_name: Optional[str] = None,
+                        dir: Optional[str] = None,
+                        ) -> Any:
+        if dir is not None and file_name is not None:
+            dir_resolved = FileManager._resolve_dir(dir)
+            path = os.path.join(dir_resolved, file_name )
+        else:
+            path = FileManager._resolve_path(name)
+
         if not os.path.exists(path):
             return {}
 
