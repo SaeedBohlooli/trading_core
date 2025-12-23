@@ -27,17 +27,37 @@ class RuntimeManager:
         self.application_state = boot.application_state
 
     @classmethod
-    def is_due(cls, key: str, interval: float | None = None) -> bool:
+    def is_due(
+            cls,
+            key: str,
+            interval: float | None = None,
+            skip_first: bool = False,
+    ) -> bool:
         now = time.time()
         interval = interval or cls.DEFAULT_INTERVAL
 
-        last = cls._last_update_times.get(key, 0.0)
+        last = cls._last_update_times.get(key)
+
+        # -----------------------------
+        # First time ever
+        # -----------------------------
+        if last is None:
+            cls._last_update_times[key] = now
+            if skip_first:
+                logger.debug(f"[RuntimeManager] {key} first call skipped")
+                return False
+            return True
+
+        # -----------------------------
+        # Normal timing logic
+        # -----------------------------
         if now - last >= interval:
-            logger.info(f"[RuntimeManager] {key} is due, now-last: {now-last}")
+            logger.info(f"[RuntimeManager] {key} is due, now-last: {now - last}")
             cls._last_update_times[key] = now
             return True
 
         return False
+
     # -------------------------------------------------------
     # CONFIG HANDLING
     # -------------------------------------------------------
