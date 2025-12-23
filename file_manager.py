@@ -136,7 +136,10 @@ class FileManager:
                 logger.error(f"FileManager.save_my_df: Failed to convert {df_name} to pd.DataFrame: {e}")
                 return None
 
-        if df is None or df.empty:
+        if df is None :
+            logger.warning(f"FileManager.save_my_df: Empty df {df_name}, nothing to save.")
+            return None
+        if df.empty:
             logger.warning(f"FileManager.save_my_df: Empty df {df_name}, nothing to save.")
             return None
 
