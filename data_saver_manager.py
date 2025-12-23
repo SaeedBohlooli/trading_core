@@ -53,7 +53,7 @@ class DataSaverManager:
     # -------------------------------------------------
     # Background loop (manager-owned)
     # -------------------------------------------------
-    async def run(self, ib, interval_sec: int = 300) -> None:
+    async def run(self, ib, interval_sec: int = 60) -> None:
         while True:
             if engine_cycle.should_exit(application_state=self.application_state):
                 logger.info("[market_session_guard_loop] Exiting as requested.")
@@ -67,10 +67,6 @@ class DataSaverManager:
                 await self.save_once(ib, force=False)
                 await asyncio.sleep(interval_sec)
 
-            except asyncio.CancelledError:
-                logger.info("[DataSaverManager] Cancelled exiting loop")
-                raise
-
-            except Exception:
-                logger.exception("[DataSaverManager] Unexpected error")
+            except Exception as e:
+                logger.exception(f"@@@ [DataSaverManager] Unexpected error {e}")
                 await asyncio.sleep(interval_sec)

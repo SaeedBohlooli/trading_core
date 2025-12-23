@@ -4,6 +4,7 @@ import pprint
 
 from trading_utils import date_utils
 from trading_core import engine_cycle
+from trading_utils import streaming_util
 logger = logging.getLogger(__name__)
 
 class StateStreamer:
@@ -25,6 +26,8 @@ class StateStreamer:
             self.interval = self.app_state.get('interval_seconds',{}).get('app_config_streamer', 5)
             state = self.app_state.copy()
             state.pop('global_state.contract_cache', None)
+            state.pop('global_state.option_contract_cache', None)
+            state = streaming_util.sanitize_for_json(state)
             try:
                 packet = {
                     "type": "application_state",
@@ -43,4 +46,6 @@ class StateStreamer:
                 print(pprint.pformat(packet))
                 logger.info(f"[StateStreamer] Retrying in 10 seconds...Check the message: {self.app_state} ")
                 await asyncio.sleep(self.interval)
+
+
 

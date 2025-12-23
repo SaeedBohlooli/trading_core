@@ -30,11 +30,11 @@ class RuntimeManager:
     def is_due(
             cls,
             key: str,
-            interval: float | None = None,
+            interval_sec: float | None = None,
             skip_first: bool = False,
     ) -> bool:
         now = time.time()
-        interval = interval or cls.DEFAULT_INTERVAL
+        interval_sec = interval_sec or cls.DEFAULT_INTERVAL
 
         last = cls._last_update_times.get(key)
 
@@ -51,7 +51,7 @@ class RuntimeManager:
         # -----------------------------
         # Normal timing logic
         # -----------------------------
-        if now - last >= interval:
+        if now - last >= interval_sec:
             logger.info(f"[RuntimeManager] {key} is due, now-last: {now - last}")
             cls._last_update_times[key] = now
             return True
