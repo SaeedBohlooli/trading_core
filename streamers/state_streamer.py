@@ -23,14 +23,15 @@ class StateStreamer:
                 logger.info("[StateStreamer] Exiting as requested.")
                 break
             self.interval = self.app_state.get('interval_seconds',{}).get('app_config_streamer', 5)
+            state = self.app_state.copy()
+            state.pop('global_state.contract_cache', None)
             try:
                 packet = {
                     "type": "application_state",
-                    "data": self.app_state,
+                    "data": state,
                     "timestamp": date_utils.time_now_yyyy_mm_dd_hh_mm_ss(),
                 }
                 logger.info("[StateStreamer] Streaming ....")
-                # print(pprint.pformat(packet))
 
                 await self.ws.broadcast(packet)
                 logger.info("[StateStreamer] Application state streamed.")
@@ -39,6 +40,7 @@ class StateStreamer:
 
             except Exception as e:
                 logger.error(f"[StateStreamer] @@@@ Unexpected error: {e}")
+                print(pprint.pformat(packet))
                 logger.info(f"[StateStreamer] Retrying in 10 seconds...Check the message: {self.app_state} ")
                 await asyncio.sleep(self.interval)
 
