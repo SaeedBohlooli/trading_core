@@ -19,14 +19,15 @@ async def market_session_guard_loop(ib, application_state, interval_sec=600):
             break
         try:
             await refresh_market_session_if_needed(ib, application_state)
+            await asyncio.sleep(interval_sec)
         except Exception as e:
             logger.exception(f"[MarketSession] refresh failed: {e}")
-
-        await asyncio.sleep(interval_sec)
+            await asyncio.sleep(interval_sec)
 
 
 async def init_market_session_time(ib, app_config, application_state):
     application_state["market_session"] = await market_session.calculate_market_session(ib)
+    logger.info(f"[MarketSession] Initialized market session: {application_state['market_session']}")
 
 
 async def refresh_market_session_if_needed(ib, application_state):
@@ -84,13 +85,30 @@ def is_trading_hours_based_on_config(app_config, application_state):
         return False
 
 def can_do_trade_now(app_config, application_state):
-    """Determine if trading can be done now based on config and state."""
+    """Determine if trading can be done now based on IB session  """
+    market_is_open = application_state.get('market_session', {}).get('is_open', False)
+    if market_is_open == False:
+        # market is closed
+        logger.info(f"[MarketSession] Market is closed according to IB data. {application_state.get('market_session', {})}")
+        return False
+
     now = datetime.datetime.now()
     current_hh_mm_ny = int(now.strftime("%H%M"))  # used in config
+
+    market_start_hhmm = application_state.get('market_session', {}).get('start_hhmm',0)
+    market_end_hhmm = application_state.get('market_session', {}).get('end_hhmm',0)
+
+    if current_hh_mm_ny > market_end_hhmm or current_hh_mm_ny < market_start_hhmm:
+        # now is before or after market hours
+        logger.info(f"[MarketSession] Current time {current_hh_mm_ny} is outside market hours {market_start_hhmm}-{market_end_hhmm}.")
+        return False
+
     trading_hours_cond = app_config.get('market').get('trading_hours')
-    market_is_open = application_state.get('market_session', {}).get('is_open', False)
 
-    if eval(trading_hours_cond) and market_is_open:
-        return True
+    if not eval(trading_hours_cond):
+        logger.info(f"[MarketSession] Current time {current_hh_mm_ny} does not satisfy trading hours condition: {trading_hours_cond}.")
+        return False
 
-    return False
+
+    return True
+
