@@ -5,17 +5,19 @@ from collections import defaultdict
 
 class TradingLedger:
     """
-    TradingLedger – Version 2.1
+    TradingLedger – Version 1.4
 
     Central, process-wide ledger for trading lifecycle data.
 
-    Features:
-    - Global (class-level) storage
-    - Lazy creation of dataframes and lists
-    - add_to_dataframe supports dict or list[dict]
-    - Optional per-call buffering
-    - Explicit buffer flushing
-    - Backward compatible with Version 1
+    Responsibilities:
+    - Own in-memory dataframes and lists
+    - Support direct + buffered writes
+    - Enforce dataframe column order (schema)
+    - Accept externally-loaded dataframes (from FileManager, DB, etc.)
+
+    Non-responsibilities:
+    - File I/O
+    - Persistence
     """
 
     # =====================================================
@@ -27,8 +29,11 @@ class TradingLedger:
     # Internal buffers for dataframe writes
     _buffers: Dict[str, List[dict]] = defaultdict(list)
 
+    # Optional registered schemas (column order)
+    _schemas: Dict[str, List[str]] = {}
+
     # =====================================================
-    # DATAFRAME API
+    # DATAFRAME WRITE API
     # =====================================================
 
     @classmethod
@@ -49,9 +54,7 @@ class TradingLedger:
             - list[dict]  -> multiple rows
         """
 
-        # ----------------------------
-        # Normalize input to list[dict]
-        # ----------------------------
+        # Normalize input
         if isinstance(rows, dict):
             rows_iter: Iterable[dict] = [rows]
         elif isinstance(rows, list):
@@ -61,26 +64,20 @@ class TradingLedger:
                 f"rows must be dict or list[dict], got {type(rows)}"
             )
 
-        # ----------------------------
-        # Prepare payloads (safe copy)
-        # ----------------------------
+        # Prepare payloads
         payloads: List[dict] = []
         for row in rows_iter:
-            payload = dict(row)
+            payload = dict(row)  # copy to avoid side effects
             if extra:
                 payload.update(extra)
             payloads.append(payload)
 
-        # ----------------------------
         # BUFFER MODE
-        # ----------------------------
         if buffer:
             cls._buffers[dataframe_name].extend(payloads)
             return
 
-        # ----------------------------
         # DIRECT MODE
-        # ----------------------------
         cls._append_many(
             dataframe_name,
             payloads,
@@ -104,12 +101,12 @@ class TradingLedger:
         # Create dataframe if missing
         if dataframe_name not in cls.dataframes:
             cls.dataframes[dataframe_name] = new_df
+            cls._apply_schema_if_any(dataframe_name)
             return
 
         df = cls.dataframes[dataframe_name]
 
         if ensure_columns:
-            # Align columns safely
             for col in df.columns:
                 if col not in new_df.columns:
                     new_df[col] = pd.NA
@@ -125,6 +122,8 @@ class TradingLedger:
             ignore_index=True,
         )
 
+        cls._apply_schema_if_any(dataframe_name)
+
     # =====================================================
     # BUFFER FLUSHING
     # =====================================================
@@ -133,7 +132,7 @@ class TradingLedger:
     def flush_buffers(cls) -> None:
         """
         Flush ALL buffered dataframe rows.
-        Call explicitly (e.g. once per engine loop).
+        Call explicitly (e.g., once per engine loop).
         """
         for dataframe_name, rows in cls._buffers.items():
             if not rows:
@@ -148,9 +147,6 @@ class TradingLedger:
 
     @classmethod
     def flush_dataframe_buffer(cls, dataframe_name: str) -> None:
-        """
-        Flush buffer for a single dataframe.
-        """
         rows = cls._buffers.get(dataframe_name)
         if not rows:
             return
@@ -161,6 +157,72 @@ class TradingLedger:
             ensure_columns=True,
         )
         rows.clear()
+
+    # =====================================================
+    # DATAFRAME SCHEMA (v1.3)
+    # =====================================================
+
+    @classmethod
+    def set_dataframe_columns(
+        cls,
+        dataframe_name: str,
+        columns: List[str],
+    ) -> None:
+        """
+        Register and enforce column order for a dataframe.
+        """
+        cls._schemas[dataframe_name] = list(columns)
+
+        if dataframe_name not in cls.dataframes:
+            cls.dataframes[dataframe_name] = pd.DataFrame(columns=columns)
+            return
+
+        cls._apply_schema_if_any(dataframe_name)
+
+    @classmethod
+    def _apply_schema_if_any(cls, dataframe_name: str) -> None:
+        if dataframe_name not in cls._schemas:
+            return
+
+        df = cls.dataframes[dataframe_name]
+        schema_cols = cls._schemas[dataframe_name]
+
+        # Add missing columns
+        for col in schema_cols:
+            if col not in df.columns:
+                df[col] = pd.NA
+
+        # Preserve extra columns
+        extra_cols = [c for c in df.columns if c not in schema_cols]
+
+        cls.dataframes[dataframe_name] = df[schema_cols + extra_cols]
+
+    # =====================================================
+    # DATAFRAME LOAD / REPLACE (v1.4)
+    # =====================================================
+
+    @classmethod
+    def set_dataframe(
+        cls,
+        dataframe_name: str,
+        df: pd.DataFrame,
+        *,
+        copy: bool = True,
+        apply_schema: bool = True,
+    ) -> None:
+        """
+        Set / replace a dataframe in the ledger.
+
+        Intended for loading data from previous runs
+        (read externally via FileManager).
+        """
+        if copy:
+            df = df.copy()
+
+        cls.dataframes[dataframe_name] = df
+
+        if apply_schema:
+            cls._apply_schema_if_any(dataframe_name)
 
     # =====================================================
     # DATAFRAME READ / HOUSEKEEPING
@@ -178,6 +240,7 @@ class TradingLedger:
     def clear_dataframe(cls, dataframe_name: str) -> None:
         cls.dataframes.pop(dataframe_name, None)
         cls._buffers.pop(dataframe_name, None)
+        cls._schemas.pop(dataframe_name, None)
 
     # =====================================================
     # LIST API
@@ -189,9 +252,6 @@ class TradingLedger:
         list_name: str,
         item: Any | List[Any],
     ) -> None:
-        """
-        Append one or many items to a named list.
-        """
         if list_name not in cls.lists:
             cls.lists[list_name] = []
 
@@ -221,3 +281,4 @@ class TradingLedger:
         cls.dataframes.clear()
         cls.lists.clear()
         cls._buffers.clear()
+        cls._schemas.clear()
