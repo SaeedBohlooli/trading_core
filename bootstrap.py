@@ -10,6 +10,8 @@ from trading_core.logging_manager import LoggingManager
 from trading_core.file_manager import FileManager
 from trading_core.runtime_manager import RuntimeManager
 from trading_core.data_saver_manager import DataSaverManager
+from trading_core.trading_ledger import TradingLedger
+
 
 class Boot:
 
@@ -38,6 +40,8 @@ class Boot:
 
         FileManager.set_dirs(self.dirs)
         FileManager.set_files_config(self.app_config["files"])
+
+        # self.trading_ledger = TradingLedger()
 
         # The reason we are not creating obejt is
         # this FileManager.save_my_df(df) will be  boot.file_manager.save_my_df(df)
