@@ -18,6 +18,8 @@ class RuntimeManager:
     Reusable for ALL engines.
     """
     _last_update_times: Dict[str, float] = {}
+    _runtime_flags: Dict[str, bool] = {}
+
     DEFAULT_INTERVAL = 60.0  # seconds
 
     def __init__(self, boot):
@@ -57,6 +59,19 @@ class RuntimeManager:
             return True
 
         return False
+
+    @classmethod
+    def should_run_once(cls, key: str) -> bool:
+        """
+        Returns True only once per runtime.
+        Subsequent calls return False.
+        """
+        if cls._runtime_flags.get(key):
+            return False
+
+        cls._runtime_flags[key] = True
+        logger.debug(f"[RuntimeManager] run-once executed: {key}")
+        return True
 
     # -------------------------------------------------------
     # CONFIG HANDLING
