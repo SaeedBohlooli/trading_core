@@ -126,3 +126,7 @@ class RuntimeManager:
     @staticmethod
     def now_day_of_week():
         return datetime.datetime.now().strftime("%A")
+
+    @staticmethod
+    def now_YYYYMMDD():
+        return datetime.datetime.now().strftime("%Y%m%d")

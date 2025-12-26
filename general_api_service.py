@@ -1,5 +1,7 @@
 import logging
 import random
+from trading_utils import date_utils
+from pprint import pprint
 """
 general_flask_app.py
 A portfolio-aware Flask Request Broker for Trading Engine control.
@@ -33,20 +35,16 @@ user_input = {}
 @app.route("/api/send-request", methods=["POST"])
 def send_request():
     global user_input
-    """
-    UI will call this with JSON like:
-      { "request_type": "change_period" , "period": 5 }
-    """
-    #
-    logger.info(f'send_request called , processing... {request.json}')
     data = request.json
-    logger.info(f'send_request data: {type(data)} {data}')
-    data['flask_request_id'] = random.Random().randint(100000, 999999)
-    #
-    with state_lock:
-         user_input.setdefault('requests', []).append(data)
+    request_id = date_utils.time_now_yyyy_mm_dd_hh_mm_ss_as_id()
+    data['api_request_id'] = request_id
 
-    return jsonify({"status": "ok", "flask_request_id":'1'})
+    logger.info(f"Received request data: \n{pprint(data)}")
+
+    with state_lock:
+        user_input.setdefault('requests', []).append(data)
+
+    return jsonify({"status": "ok", "api_request_id": data['api_request_id']})
 
 
 @app.route("/api/get-all-requests", methods=["GET"])
@@ -104,8 +102,8 @@ if __name__ == "__main__":
     # ----------------------------------------------
     # Load config YAML for this portfolio
     # ----------------------------------------------
-    config = ConfigManager.load(portfolio_id)
-    flask_cfg = config["flask"]
+    app_config = ConfigManager.load(portfolio_id)
+    api_service_cfg = app_config["api_service"]
 
     logger = LoggingManager.setup(
         log_dir=f'../../portfolios/{portfolio_id}/logs/flask',
@@ -115,16 +113,14 @@ if __name__ == "__main__":
     )
 
     logger.info("===========================================")
-    logger.info(f"Starting Flask Broker for portfolio_id={portfolio_id}")
-    logger.info(f"Config Loaded: {flask_cfg}")
+    logger.info(f"Starting api_service API for portfolio {portfolio_id}")
+    logger.info(f"Config Loaded: {api_service_cfg}")
     logger.info("===========================================")
 
-    # ----------------------------------------------
-    # Start Flask (this app is standalone!)
-    # ----------------------------------------------
+
     app.run(
-        host=flask_cfg.get("host", "0.0.0.0"),
-        port=flask_cfg.get("port", 2222),
+        host=api_service_cfg.get("host", "0.0.0.0"),
+        port=api_service_cfg.get("port", 2222),
         debug=False,
         use_reloader=False
     )
