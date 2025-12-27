@@ -208,7 +208,7 @@ class TradingLedger:
         df: pd.DataFrame,
         *,
         copy: bool = True,
-        apply_schema: bool = True,
+        apply_schema: bool = False,
     ) -> None:
         """
         Set / replace a dataframe in the ledger.
@@ -282,3 +282,97 @@ class TradingLedger:
         cls.lists.clear()
         cls._buffers.clear()
         cls._schemas.clear()
+
+
+    # =====================================================
+    # STATS / INTROSPECTION API (v1.5)
+    # =====================================================
+
+    @classmethod
+    def get_stats(cls) -> dict:
+        """
+        Return global ledger statistics.
+        """
+        return {
+            "dataframes": {
+                "count": len(cls.dataframes),
+                "names": list(cls.dataframes.keys()),
+            },
+            "lists": {
+                "count": len(cls.lists),
+                "names": list(cls.lists.keys()),
+            },
+            "buffers": {
+                "dataframes_with_buffers": [
+                    name for name, rows in cls._buffers.items() if rows
+                ],
+                "total_buffered_rows": sum(
+                    len(rows) for rows in cls._buffers.values()
+                ),
+            },
+        }
+
+    @classmethod
+    def get_dataframe_stats(cls, dataframe_name: str) -> dict:
+        """
+        Return statistics for a specific dataframe.
+        """
+        df = cls.dataframes.get(dataframe_name)
+        buffered_rows = len(cls._buffers.get(dataframe_name, []))
+
+        if df is None:
+            return {
+                "exists": False,
+                "name": dataframe_name,
+            }
+
+        return {
+            "exists": True,
+            "name": dataframe_name,
+            "rows": len(df),
+            "columns": len(df.columns),
+            "column_names": list(df.columns),
+            "buffered_rows": buffered_rows,
+            "has_schema": dataframe_name in cls._schemas,
+            "schema_columns": cls._schemas.get(dataframe_name),
+            "memory_bytes": int(df.memory_usage(deep=True).sum()),
+        }
+
+    @classmethod
+    def get_list_stats(cls, list_name: str) -> dict:
+        """
+        Return statistics for a specific list.
+        """
+        lst = cls.lists.get(list_name)
+
+        if lst is None:
+            return {
+                "exists": False,
+                "name": list_name,
+            }
+
+        return {
+            "exists": True,
+            "name": list_name,
+            "items": len(lst),
+        }
+
+    @classmethod
+    def get_all_dataframe_stats(cls) -> List[dict]:
+        """
+        Return stats for ALL registered dataframes.
+        """
+        return [
+            cls.get_dataframe_stats(name)
+            for name in sorted(cls.dataframes.keys())
+        ]
+
+    @classmethod
+    def get_all_list_stats(cls) -> List[dict]:
+        """
+        Return stats for ALL registered lists.
+        """
+        return [
+            cls.get_list_stats(name)
+            for name in sorted(cls.lists.keys())
+        ]
