@@ -93,7 +93,7 @@ class FileManager:
     def _resolve_dir(dir: str) -> str:
 
         for key, value in FileManager.dirs.paths.__dict__.items(): # ex: ib: ../../portfolios/p106-1/ib
-            logger.info(f"_resolve_path, Key: {key}, Value: {value}")  # Debugging line  # Key: results, Value: ../../portfolios/p106-1/results
+            logger.debug(f"_resolve_path, Key: {key}, Value: {value}")  # Debugging line  # Key: results, Value: ../../portfolios/p106-1/results
 
             if key == dir: # e.g.,result
                 return value
@@ -107,8 +107,8 @@ class FileManager:
     def save_my_df(
         df: pd.DataFrame,
         df_name: Optional[str] = None,
-        file_name: Optional[str] = None,
-        dir: Optional[str] = None,
+        file_name: Optional[str] = None, # dir and file_name are used together
+        dir: Optional[str] = None, # dir and file_name are used together dir goes back to FileManager.dirs
         min_interval_sec: Optional[int] = None,
         mode: str = "w",
         save_tabular: bool = False,
@@ -229,8 +229,12 @@ class FileManager:
     def load_named_json(name: str= None,
                         file_name: Optional[str] = None,
                         dir: Optional[str] = None,
+                        full_path: Optional[str] = None
                         ) -> Any:
-        if dir is not None and file_name is not None:
+        if full_path is not None:
+            # This is full explicit path
+            path = full_path
+        elif dir is not None and file_name is not None:
             dir_resolved = FileManager._resolve_dir(dir)
             path = os.path.join(dir_resolved, file_name )
         else:
