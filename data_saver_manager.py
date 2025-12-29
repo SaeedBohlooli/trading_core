@@ -67,8 +67,8 @@ class DataSaverManager:
                 logger.info("[market_session_guard_loop] Exiting as requested.")
                 break
             try:
-                if self.application_state.get("is_save_time", True):
-                    logger.info("[DataSaverManager] Busy time ... skipping save")
+                if not self.application_state.get("is_save_time", True):
+                    logger.info("[DataSaverManager] not is_save_time ... skipping save")
                     await asyncio.sleep(30)
                     continue
 

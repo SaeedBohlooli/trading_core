@@ -29,7 +29,7 @@ class RuntimeManager:
         self.application_state = boot.application_state
 
     @classmethod
-    def is_due(
+    def _is_due_old(
             cls,
             key: str,
             interval_sec: float | None = None,
@@ -53,6 +53,58 @@ class RuntimeManager:
         # -----------------------------
         # Normal timing logic
         # -----------------------------
+        if now - last >= interval_sec:
+            logger.info(f"[RuntimeManager] {key} is due, now-last: {now - last}")
+            cls._last_update_times[key] = now
+            return True
+
+        return False
+
+    import time
+    import datetime
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+    @classmethod
+    def is_due(
+            cls,
+            key: str,
+            interval_sec: float | None = None,
+            skip_first: bool = False,
+            min_time_hhmm: int | None = None,  # e.g. 930
+    ) -> bool:
+        now = time.time()
+        interval_sec = interval_sec or cls.DEFAULT_INTERVAL
+
+        # -------------------------------------------------
+        # Time-of-day gate (HHMM as int, e.g. 930, 1600)
+        # -------------------------------------------------
+        if min_time_hhmm is not None:
+            now_hhmm = int(datetime.datetime.now().strftime("%H%M"))
+
+            if now_hhmm < min_time_hhmm:
+                logger.debug(
+                    f"[RuntimeManager] {key} blocked by time gate: "
+                    f"{now_hhmm} < {min_time_hhmm}"
+                )
+                return False
+
+        last = cls._last_update_times.get(key)
+
+        # -------------------------------------------------
+        # First time ever
+        # -------------------------------------------------
+        if last is None:
+            cls._last_update_times[key] = now
+            if skip_first:
+                logger.debug(f"[RuntimeManager] {key} first call skipped")
+                return False
+            return True
+
+        # -------------------------------------------------
+        # Normal timing logic
+        # -------------------------------------------------
         if now - last >= interval_sec:
             logger.info(f"[RuntimeManager] {key} is due, now-last: {now - last}")
             cls._last_update_times[key] = now
