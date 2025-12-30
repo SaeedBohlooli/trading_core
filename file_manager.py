@@ -191,7 +191,7 @@ class FileManager:
     def save_named_json(
         data: Any,
         name: str = None,
-        dir: Optional[str] = None,
+        dir: Optional[str] = None, # if you set dir, then file_name must be set too
         file_name: Optional[str] = None,
         min_interval_sec: Optional[int] = None,
     ) -> Optional[str]:

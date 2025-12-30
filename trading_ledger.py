@@ -45,6 +45,7 @@ class TradingLedger:
         extra: dict | None = None,
         ensure_columns: bool = True,
         buffer: bool = False,
+        drop_duplicates: bool = False,
     ) -> None:
         """
         Add one or many rows to a dataframe.
@@ -83,6 +84,8 @@ class TradingLedger:
             payloads,
             ensure_columns=ensure_columns,
         )
+        if drop_duplicates:
+            cls.dataframes[dataframe_name] = cls.dataframes[dataframe_name].drop_duplicates(keep='last')
 
     # =====================================================
     # INTERNAL APPEND HELPERS
