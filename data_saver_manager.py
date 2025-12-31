@@ -44,9 +44,13 @@ class DataSaverManager:
     # -------------------------------------------------
     # One-shot save (callable manually if needed)
     # -------------------------------------------------
-    async def save_once(self, ib, force: bool = False) -> None:
+
+    def save_application_state(self, ib, force: bool = False) -> None:
         # 1) application_state (cheap)
         FileManager.save_named_json(self.application_state, "application_state")
+        return
+
+    async def save_once(self, ib, force: bool = False) -> None:
 
         # 2) IB post-trade dfs (expensive → throttled)
         ib_interval = self.app_config.get("intervals", {}).get("ib_posttrade", 300)
@@ -67,9 +71,11 @@ class DataSaverManager:
                 logger.info("[market_session_guard_loop] Exiting as requested.")
                 break
             try:
-                if self.application_state.get("is_save_time", True):
+                self.save_application_state(ib)
+
+                if not self.application_state.get("is_save_time", True):
                     logger.info("[DataSaverManager] Busy time ... skipping save")
-                    await asyncio.sleep(30)
+                    await asyncio.sleep(interval_sec)
                     continue
 
                 logger.info("[DataSaverManager] Running save_dfs_from_trading_ledger ...")
