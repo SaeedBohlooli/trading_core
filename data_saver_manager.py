@@ -76,6 +76,9 @@ class DataSaverManager:
                 if not self.application_state.get("is_save_time", True):
                     logger.info("[DataSaverManager] Busy time ... skipping save")
                     await asyncio.sleep(interval_sec)
+                if not self.application_state.get("is_save_time", True):
+                    logger.info("[DataSaverManager] not is_save_time ... skipping save")
+                    await asyncio.sleep(30)
                     continue
 
                 logger.info("[DataSaverManager] Running save_dfs_from_trading_ledger ...")

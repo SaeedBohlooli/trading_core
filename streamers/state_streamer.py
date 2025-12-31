@@ -25,8 +25,8 @@ class StateStreamer:
                 break
             self.interval = self.app_state.get('interval_seconds',{}).get('app_config_streamer', 5)
             state = self.app_state.copy()
-            state.pop('global_state.contract_cache', None)
-            state.pop('global_state.option_contract_cache', None)
+            # state.pop('global_state.contract_cache', None)
+            # state.pop('global_state.option_contract_cache', None)
             state = streaming_util.sanitize_for_json(state)
             try:
                 packet = {

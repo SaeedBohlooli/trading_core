@@ -84,7 +84,7 @@ class FileManager:
         file_path_template = file_path_template
 
         for key, value in FileManager.dirs.paths.__dict__.items(): # ex: ib: ../../portfolios/p106-1/ib
-            logger.info(f"_resolve_path, Key: {key}, Value: {value}")  # Debugging line  # Key: results, Value: ../../portfolios/p106-1/results
+            logger.debug(f"_resolve_path, Key: {key}, Value: {value}")  # Debugging line  # Key: results, Value: ../../portfolios/p106-1/results
             k = "{" + key + "}"   # e.g., {results}
             if k in file_path_template: # e.g.,{result}/scanning.csv
                 file_path_template = file_path_template.replace(k, value) # e.g., ../../portfolios/p106-1/results/scanning.csv
@@ -191,7 +191,7 @@ class FileManager:
     def save_named_json(
         data: Any,
         name: str = None,
-        dir: Optional[str] = None,
+        dir: Optional[str] = None, # if you set dir, then file_name must be set too
         file_name: Optional[str] = None,
         min_interval_sec: Optional[int] = None,
     ) -> Optional[str]:
