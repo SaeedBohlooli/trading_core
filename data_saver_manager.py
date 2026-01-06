@@ -50,15 +50,23 @@ class DataSaverManager:
         FileManager.save_named_json(self.application_state, "application_state")
         return
 
-    async def save_once(self, ib, force: bool = False) -> None:
+    async def save_ib_files(self, ib, force: bool = False) -> None:
 
         # 2) IB post-trade dfs (expensive → throttled)
-        ib_interval = self.app_config.get("intervals", {}).get("ib_posttrade", 300)
+        ib_interval = self.app_config.get("intervals", {}).get("save_ib_files", 0)
+        if ib_interval ==0:
+            ib_interval = 60 * 1  # default to 1 minutes
 
-        if self._should_run("ib_posttrade", ib_interval, force, skip_first=True):
+        if self._should_run("save_ib_files", ib_interval, force, skip_first=True):
             logger.info("[DataSaverManager] Saving IB dataframes ...")
             await ib_posttrade.save_ib_dfs_async(self.ib_dir, ib)
             logger.info("[DataSaverManager] Finished Saving IB dataframes ...")
+
+        logger.info(f"[DataSaverManager] Save completed (force={force})")
+
+    async def save_once(self, ib, force: bool = False) -> None:
+
+
 
         logger.info(f"[DataSaverManager] Save completed (force={force})")
 
@@ -67,13 +75,18 @@ class DataSaverManager:
     # -------------------------------------------------
     async def run(self, ib, interval_sec: int = 60) -> None:
         while True:
-            if engine_cycle.should_exit(application_state=self.application_state):
-                logger.info("[market_session_guard_loop] Exiting as requested.")
-                break
-            try:
-                self.save_application_state(ib)
 
-                if not self.application_state.get("is_save_time", True):
+            try:
+                if engine_cycle.should_exit(application_state=self.application_state):
+                    logger.info("[market_session_guard_loop] change force_save as exit is requested ... .")
+                    force_save = True
+                else:
+                    force_save = False
+
+                self.save_application_state(ib)
+                await self.save_ib_files(ib, force=force_save)
+
+                if not self.application_state.get("is_save_time", True) and force_save == False:  # skip saving if not save time or not forced
                     logger.info("[DataSaverManager] not is_save_time ... skipping save")
                     await asyncio.sleep(interval_sec)
                     continue
@@ -83,8 +96,12 @@ class DataSaverManager:
                 logger.info("[DataSaverManager] Finished save_dfs_from_trading_ledger ...")
 
                 logger.info("DataSaverManager] Running save_once ...")
-                await self.save_once(ib, force=False)
+                await self.save_once(ib, force=force_save)
                 logger.info("[DataSaverManager] Finished save_once ...")
+
+                if engine_cycle.should_exit(application_state=self.application_state):
+                    logger.info("[market_session_guard_loop] Exiting as requested.")
+                    break
 
                 await asyncio.sleep(interval_sec)
 
