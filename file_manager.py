@@ -124,7 +124,7 @@ class FileManager:
         """
         if type(df) is not pd.DataFrame:
             try:
-                logger.info(f"we are converting {df_name} to pd.DataFrame, type(df): {type(df)}")
+                logger.info(f"We are converting {df_name} to pd.DataFrame, type(df): {type(df)}")
                 if isinstance(df, dict):
                     # one logical row
                     df =  pd.DataFrame([df])
