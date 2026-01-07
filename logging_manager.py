@@ -15,11 +15,21 @@ class LoggingManager:
         file = f'{portfolio_id}{alias}.log'
         log_file = f"{log_dir}/{file}"
 
-        handler = logging.handlers.RotatingFileHandler(
-            filename=log_file,
-            maxBytes=5 * 1024 * 1024,
-            backupCount=200
-        )
+        handler_type = "TimedRotatingFileHandler"
+
+        if handler_type == 'RotatingFileHandler':
+            handler = logging.handlers.RotatingFileHandler(
+                filename=log_file,
+                maxBytes=20 * 1024 * 1024,
+                backupCount=200
+            )
+        elif handler_type == 'TimedRotatingFileHandler':
+            handler = logging.handlers.TimedRotatingFileHandler(
+                filename=log_file,
+                when='M',
+                interval=30,
+                backupCount=0
+            )
 
         formatter = logging.Formatter(
             "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
