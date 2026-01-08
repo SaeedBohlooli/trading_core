@@ -27,7 +27,10 @@ async def process_common_user_request_loop(ib, app_config, application_state, in
             logger.info("[process_common_user_request_loop] Exiting as requested.")
             break
         try:
+
             await user_request_router.process_user_requests(ib, app_config, application_state)
+            user_request_router.save_archived_user_requests(application_state)
+
             logger.info("process_common_user_request_loop...")
             await asyncio.sleep(interval_sec)
         except Exception as e:
