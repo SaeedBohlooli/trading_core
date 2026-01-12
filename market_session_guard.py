@@ -103,7 +103,7 @@ def can_do_trade_now(app_config, application_state):
         logger.info(f"[MarketSession] Current time {current_hh_mm_ny} is outside market hours {market_start_hhmm}-{market_end_hhmm}.")
         return False
 
-    trading_hours_cond = app_config.get('market').get('trading_hours')
+    trading_hours_cond = app_config.get('market', {}).get('trading_hours', '1 == 1')
 
     if not eval(trading_hours_cond):
         logger.info(f"[MarketSession] Current time {current_hh_mm_ny} does not satisfy trading hours condition: {trading_hours_cond}.")
