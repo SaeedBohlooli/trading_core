@@ -33,7 +33,7 @@ class ConfigStreamer:
                 await asyncio.sleep(self.interval)
 
             except Exception as e:
-                logger.error(f"[ConfigStreamer] @@@@ Unexpected error: {e}")
+                logger.error(f"[ConfigStreamer] @ Unexpected error: {e}")
                 #pprint(self.app_config)
                 logger.info(f"[ConfigStreamer] Retrying in few seconds...Check the message: {self.app_config} ")
                 await asyncio.sleep(self.interval)
