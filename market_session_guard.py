@@ -7,7 +7,7 @@ from trading_core import engine_cycle
 logger = logging.getLogger(__name__)
 
 
-async def market_session_guard_loop(ib, application_state, interval_sec=600):
+async def market_session_guard_loop(ib, application_state, runtime, interval_sec=60*5):
     """
     Background task:
     - refreshes market session ONLY when needed
@@ -18,7 +18,10 @@ async def market_session_guard_loop(ib, application_state, interval_sec=600):
             logger.info("[MarketSession] Exiting as requested.")
             break
         try:
-            await refresh_market_session_if_needed(ib, application_state)
+            if (application_state.get('is_busy_time', False)  == False and
+                    runtime.is_due("market_session_refresh", interval_sec=60*60)): # each 1 hr
+                await refresh_market_session(ib, application_state)
+
             await asyncio.sleep(interval_sec)
         except Exception as e:
             logger.exception(f"[MarketSession] refresh failed: {e}")
@@ -30,13 +33,18 @@ async def init_market_session_time(ib, app_config, application_state):
     logger.info(f"[MarketSession] Initialized market session: {application_state['market_session']}")
 
 
-async def refresh_market_session_if_needed(ib, application_state):
+async def refresh_market_session_once_date_changed(ib, application_state):
     ms = application_state.get("market_session")
     today = datetime.date.today().isoformat()
 
     if not ms or ms["date"] != today:
         logger.info(f"[MarketSession] Refreshing market session for date: {today}")
         application_state["market_session"] = await market_session.calculate_market_session(ib)
+
+async def refresh_market_session(ib, application_state):
+    today = datetime.date.today().isoformat()
+    logger.info(f"[MarketSession] Refreshing market session for date: {today}")
+    application_state["market_session"] = await market_session.calculate_market_session(ib)
 
 def is_market_open_based_on_ib(application_state):
     """
