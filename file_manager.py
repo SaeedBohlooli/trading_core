@@ -139,7 +139,7 @@ class FileManager:
         if df is None :
             logger.warning(f"FileManager.save_my_df: Empty df {df_name}, nothing to save.")
             return None
-        if df.empty:
+        if df.empty and mode=="a" :
             logger.warning(f"FileManager.save_my_df: Empty df {df_name}, nothing to save.")
             return None
 

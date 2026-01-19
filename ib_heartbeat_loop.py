@@ -43,7 +43,7 @@ async def ib_heartbeat_loop(
             # 1) Basic connection check
 
             logger.info(f"IB Heartbeat Loop: Checking IB connection...")
-            ts = datetime.now(timezone.utc).isoformat()
+            ts = datetime.now().isoformat()
             app_hb_path.write_text(ts)  # write app heartbeat
 
             if not ib.isConnected():
