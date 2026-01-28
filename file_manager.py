@@ -143,14 +143,16 @@ class FileManager:
             logger.warning(f"FileManager.save_my_df: Empty df {df_name}, nothing to save.")
             return None
 
+        if min_interval_sec is not None:
+            key = df_name if df_name is not None else file_name
+            now = time.time()
+            last = FileManager._last_save_times.get(key)
+            if last and (now - last) < min_interval_sec:
+                return None
+
         if df_name is None:
             df_name = FileManager._detect_df_name(df, df_name)
 
-        if min_interval_sec is not None:
-            now = time.time()
-            last = FileManager._last_save_times.get(df_name)
-            if last and (now - last) < min_interval_sec:
-                return None
 
         if dir is None: # is not set, read it ....
             path = FileManager._resolve_path(df_name)
