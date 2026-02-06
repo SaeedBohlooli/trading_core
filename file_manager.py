@@ -205,8 +205,9 @@ class FileManager:
         """
 
         if min_interval_sec is not None:
+            key = name if name is not None else file_name
             now = time.time()
-            last = FileManager._last_save_times.get(name)
+            last = FileManager._last_save_times.get(key)
             if last and (now - last) < min_interval_sec:
                 return None
 

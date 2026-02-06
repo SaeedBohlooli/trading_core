@@ -9,11 +9,11 @@ class ConfigStreamer:
     Streams the application config to WebSocket clients.
     """
 
-    def __init__(self, app_config, application_state, ws_server, interval=12):
+    def __init__(self, app_config, application_state, ws_server, interval_sec=12):
         self.app_config = app_config
         self.application_state = application_state
         self.ws = ws_server
-        self.interval = interval
+        self.interval_sec = interval_sec
 
     async def run(self):
         while True:
@@ -30,10 +30,10 @@ class ConfigStreamer:
                 await self.ws.broadcast(packet)
                 logger.info("[ConfigStreamer] App config streamed.")
 
-                await asyncio.sleep(self.interval)
+                await asyncio.sleep(self.interval_sec)
 
             except Exception as e:
                 logger.error(f"[ConfigStreamer] @ Unexpected error: {e}")
                 #pprint(self.app_config)
                 logger.info(f"[ConfigStreamer] Retrying in few seconds...Check the message: {self.app_config} ")
-                await asyncio.sleep(self.interval)
+                await asyncio.sleep(self.interval_sec)
