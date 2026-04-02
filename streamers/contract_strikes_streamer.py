@@ -3,6 +3,7 @@ import hashlib
 import json
 import logging
 import time
+from typing import Any
 
 from trading_core import engine_cycle
 from trading_utils import date_utils
@@ -11,12 +12,39 @@ from trading_utils import streaming_util
 
 logger = logging.getLogger(__name__)
 
+_CONTRACT_FIELDS = (
+    "conId",
+    "symbol",
+    "lastTradeDateOrContractMonth",
+    "strike",
+    "right",
+    "multiplier",
+    "exchange",
+    "currency",
+    "localSymbol",
+    "tradingClass",
+    "secType",
+)
+
+
+def _contract_to_dict(contract: Any) -> dict:
+    out: dict[str, Any] = {}
+    for f in _CONTRACT_FIELDS:
+        v = getattr(contract, f, None)
+        if v is not None and v != "":
+            out[f] = v
+    if "strike" in out and out["strike"] is not None:
+        out["strike"] = float(out["strike"])
+    if "conId" in out and out["conId"] is not None:
+        out["conId"] = int(out["conId"])
+    return streaming_util.sanitize_for_json(out)
+
 
 class ContractStrikesStreamer:
     """
-    Emits type 'contract_strikes' from global_state.option_contract_cache
-    (stringified for JSON). Broadcasts on change and on a periodic snapshot
-    interval (contract_strikes_force_emit) so clients can resync.
+    Emits type 'contract_strikes' from global_state.option_contract_cache.
+    Payload is grouped by symbol: each symbol has one object with all contracts
+    (strikes / expiries / ids) derived from qualified IB contract objects.
     """
 
     def __init__(self, app_config, app_state, ws_server, interval_sec=1):
@@ -30,17 +58,48 @@ class ContractStrikesStreamer:
         self._force_emit_sec = float(force) if force is not None else 15.0
 
     def _build_data(self) -> dict:
-        stringified = global_state.stringify_option_cache(global_state.option_contract_cache)
-        stringified = streaming_util.sanitize_for_json(stringified)
-        count = len(stringified)
-        by_symbol: dict[str, int] = {}
-        for k in stringified:
-            sym = k.split("|")[0] if "|" in str(k) else str(k)
-            by_symbol[sym] = by_symbol.get(sym, 0) + 1
+        cache = global_state.option_contract_cache
+        by_conid: dict[int, dict] = {}
+
+        for _key, contract in cache.items():
+            row = _contract_to_dict(contract)
+            cid = row.get("conId")
+            if cid is None:
+                continue
+            by_conid[cid] = row
+
+        grouped: dict[str, list[dict]] = {}
+        for row in by_conid.values():
+            sym = row.get("symbol") or "?"
+            grouped.setdefault(sym, []).append(row)
+
+        symbols_payload: dict[str, dict] = {}
+        total = 0
+        for sym in sorted(grouped.keys()):
+            rows = grouped[sym]
+            rows.sort(
+                key=lambda r: (
+                    str(r.get("lastTradeDateOrContractMonth") or ""),
+                    float(r.get("strike") or 0.0),
+                    str(r.get("right") or ""),
+                    int(r.get("conId") or 0),
+                )
+            )
+            exps = sorted(
+                {str(r.get("lastTradeDateOrContractMonth")) for r in rows if r.get("lastTradeDateOrContractMonth")}
+            )
+            symbols_payload[sym] = {
+                "symbol": sym,
+                "contractCount": len(rows),
+                "expirations": exps,
+                "contracts": rows,
+            }
+            total += len(rows)
+
         return {
-            "option_contract_cache": stringified,
-            "count": count,
-            "bySymbol": by_symbol,
+            "count": total,
+            "symbolCount": len(symbols_payload),
+            "symbols": symbols_payload,
         }
 
     def _payload_hash(self, data: dict) -> str:
@@ -79,7 +138,8 @@ class ContractStrikesStreamer:
                     self._last_emit_at = now
                     logger.info(
                         f"[ContractStrikesStreamer] broadcast changed={changed} "
-                        f"initial={initial} periodic={periodic} count={data['count']}"
+                        f"initial={initial} periodic={periodic} count={data['count']} "
+                        f"symbols={data['symbolCount']}"
                     )
             except Exception as e:
                 logger.error(f"[ContractStrikesStreamer] error: {e}", exc_info=True)
