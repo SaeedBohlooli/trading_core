@@ -15,3 +15,16 @@ def populate_global_state(application_state):
     application_state['global_state.option_contract_cache'] = global_state.stringify_option_cache(global_state.option_contract_cache)
     application_state['global_state.quote_cache_symbols'] = global_state.extract_symbols_from_quote_cache()
     application_state['global_state.subscribed_symbols_count'] = global_state.subscribed_symbols_count
+
+
+
+def add_audit_message(application_state, message) -> None:
+    if 'audit_messages' not in application_state:
+        application_state['audit_messages'] = []
+    application_state['audit_messages'].append(
+        {'message' : message,
+         'timestamp': date_utils.time_now_yyyy_mm_dd_hh_mm_ss()})
+
+    max_number_of_message = int(application_state.get('max_number_of_messages', 3))
+    if len(application_state['audit_messages']) > max_number_of_message:
+        application_state['audit_messages'] = application_state['audit_messages'][-max_number_of_message:]
