@@ -113,11 +113,21 @@ class RuntimeManager:
         return False
 
     @classmethod
-    def should_run_once(cls, key: str) -> bool:
+    def should_run_once(cls, key: str, min_time_hhmm: int | None = None) -> bool:
         """
         Returns True only once per runtime.
         Subsequent calls return False.
         """
+        if min_time_hhmm is not None:
+            now_hhmm = int(datetime.datetime.now().strftime("%H%M"))
+
+            if now_hhmm < min_time_hhmm:
+                logger.debug(
+                    f"[RuntimeManager] {key} blocked by time gate: "
+                    f"{now_hhmm} < {min_time_hhmm}"
+                )
+                return False
+
         if cls._runtime_flags.get(key):
             return False
 
