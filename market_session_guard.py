@@ -94,6 +94,9 @@ def is_trading_hours_based_on_config(app_config, application_state):
 
 def can_do_trade_now(app_config, application_state):
     """Determine if trading can be done now based on IB session  """
+    if app_config.get('market_session_guard_skip', False) == True:
+        return True
+
     market_is_open = application_state.get('market_session', {}).get('is_open', False)
     if market_is_open == False:
         # market is closed
