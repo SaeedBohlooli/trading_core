@@ -13,7 +13,8 @@ logger = logging.getLogger(__name__)
 
 class OpenTradesStreamer:
     """
-    Emits type 'open_trades' from application_state['open_trades_dic'].
+    Emits type 'open_trades' with application_state['open_trades_dic'] and
+    application_state['ib_positions'].
     Broadcasts when the sanitized payload changes (MD5 of stable JSON).
     """
 
@@ -27,6 +28,10 @@ class OpenTradesStreamer:
     def _open_trades_body(self):
         otd = self.app_state.get("open_trades_dic") or {}
         return streaming_util.sanitize_for_json(dict(otd))
+
+    def _ib_positions_body(self):
+        ips = self.app_state.get("ib_positions") or []
+        return streaming_util.sanitize_for_json(list(ips))
 
     def _payload_hash(self, body: dict) -> str:
         raw = json.dumps(body, sort_keys=True, separators=(",", ":"), default=str)
@@ -43,10 +48,14 @@ class OpenTradesStreamer:
                 break
             loop_start = time.monotonic()
             try:
-                body = {"open_trades_dic": self._open_trades_body()}
+                body = {
+                    "open_trades_dic": self._open_trades_body(),
+                    "ib_positions": self._ib_positions_body(),
+                }
                 h = self._payload_hash(body)
                 changed = h != self._last_hash
-                n = len(body["open_trades_dic"])
+                n_ot = len(body["open_trades_dic"])
+                n_ip = len(body["ib_positions"])
                 if changed:
                     self._last_hash = h
                     packet = {
@@ -55,9 +64,13 @@ class OpenTradesStreamer:
                         "timestamp": date_utils.time_now_yyyy_mm_dd_hh_mm_ss(),
                     }
                     await self.ws.broadcast(packet)
-                    logger.info(f"[OpenTradesStreamer] changed=True size={n}")
+                    logger.info(
+                        f"[OpenTradesStreamer] changed=True open_trades={n_ot} ib_positions={n_ip}"
+                    )
                 else:
-                    logger.debug(f"[OpenTradesStreamer] changed=False size={n}")
+                    logger.debug(
+                        f"[OpenTradesStreamer] changed=False open_trades={n_ot} ib_positions={n_ip}"
+                    )
             except Exception as e:
                 logger.error(f"[OpenTradesStreamer] error: {e}", exc_info=True)
 
