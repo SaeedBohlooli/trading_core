@@ -44,7 +44,7 @@ class WSServer:
     async def broadcast(self, message: dict):
         """Send a JSON message to all connected clients."""
         if not self.clients:
-            logger.info("No WS clients — skipping broadcast.")
+            logger.info("[broadcast] No WS clients — skipping broadcast.")
             return
 
         payload = json.dumps(message)
@@ -52,7 +52,7 @@ class WSServer:
             ws.send(payload) for ws in list(self.clients)
         ], return_exceptions=True)
 
-        logger.info(f"Broadcasted to {len(self.clients)} clients")
+        logger.info(f"[broadcast] Broadcasted to {len(self.clients)} clients")
 
     # ----------------------------------------------------
     # Start WS Server

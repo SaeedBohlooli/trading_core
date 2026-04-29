@@ -38,17 +38,17 @@ async def ib_heartbeat_loop(
     while True:
         try:
             if engine_cycle.should_exit(application_state=application_state):
-                logger.info("[IB Heartbeat Loop] Exiting as requested.")
+                logger.info("[ib_heartbeat_loop] Exiting as requested.")
                 break
             # 1) Basic connection check
 
-            logger.info(f"IB Heartbeat Loop: Checking IB connection...")
+            logger.info(f"[ib_heartbeat_loop] Checking IB connection...")
             ts = datetime.now().isoformat()
             app_hb_path.write_text(ts)  # write app heartbeat
 
             if not ib.isConnected():
                 # IB is not connected → do NOT write heartbeat
-                logger.warning(f"@@@@@  IB Heartbeat Loop: IB not connected, skipping heartbeat write.")
+                logger.warning(f"[ib_heartbeat_loop] @@@@@ IB not connected, skipping heartbeat write.")
                 ib = await IBConnector.connect_from_config(app_config, max_attempts=5)
                 await asyncio.sleep(interval_seconds)
                 continue
@@ -59,11 +59,11 @@ async def ib_heartbeat_loop(
             # 3) Write heartbeat (UTC ISO timestamp)
 
             ib_hb_path.write_text(ts)
-            logger.info(f"IB Heartbeat Loop: Wrote heartbeat to {ib_heartbeat_file}")
+            logger.info(f"[ib_heartbeat_loop] Wrote heartbeat to {ib_heartbeat_file}")
 
         except Exception as ex:
             # Any exception → skip heartbeat this round
             # Engine can decide how to react elsewhere
-            logger.warning(f"@@@ IB Heartbeat Loop {ex}")
+            logger.warning(f"[ib_heartbeat_loop] @@@ IB Heartbeat Loop {ex}")
 
         await asyncio.sleep(interval_seconds)
