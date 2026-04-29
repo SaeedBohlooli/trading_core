@@ -25,18 +25,18 @@ class WSServer:
     async def handler(self, ws):
         """Handle new websocket clients."""
         self.clients.add(ws)
-        logger.info(f"WS client connected. Total clients: {len(self.clients)}")
+        logger.info(f"[handler] WS client connected. Total clients: {len(self.clients)}")
 
         try:
             async for _ in ws:
                 pass  # WS is one-way for now (server → client)
 
         except Exception as e:
-            logger.error(f"@@@ WS handler error: {e}")
+            logger.error(f"[handler] @@@ WS handler error: {e}")
 
         finally:
             self.clients.discard(ws)
-            logger.info(f"WS client disconnected. Total clients: {len(self.clients)}")
+            logger.info(f"[handler] WS client disconnected. Total clients: {len(self.clients)}")
 
     # ----------------------------------------------------
     # Broadcast
