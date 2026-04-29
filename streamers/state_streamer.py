@@ -35,6 +35,7 @@ class StateStreamer:
                     "timestamp": date_utils.time_now_yyyy_mm_dd_hh_mm_ss(),
                 }
                 logger.info(f"[StateStreamer] Streaming ....unique_run_number: {self.app_state.get('unique_run_number')}")
+                #logger.info(f"[StateStreamer] Streaming ....{pprint.pformat(packet)}")
 
                 await self.ws.broadcast(packet)
                 logger.info("[StateStreamer] Application state streamed.")

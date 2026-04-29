@@ -60,7 +60,6 @@ class Boot:
 
 
         self.application_state['portfolio_id'] = portfolio_id
-        self.application_state['temp'] = 'Here is in the Boot'
 
         self.runtime = RuntimeManager(self)
 

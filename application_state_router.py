@@ -18,13 +18,14 @@ def populate_global_state(application_state):
 
 
 
-def add_audit_message(application_state, message) -> None:
+def add_audit_message(application_state, message, severity="low") -> None:
     if 'audit_messages' not in application_state:
         application_state['audit_messages'] = []
     application_state['audit_messages'].append(
         {'message' : message,
+         "severity" : severity,
          'timestamp': date_utils.time_now_yyyy_mm_dd_hh_mm_ss()})
 
-    max_number_of_message = int(application_state.get('max_number_of_messages', 3))
+    max_number_of_message = int(application_state.get('max_number_of_messages', 6))
     if len(application_state['audit_messages']) > max_number_of_message:
         application_state['audit_messages'] = application_state['audit_messages'][-max_number_of_message:]
