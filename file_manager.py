@@ -124,7 +124,7 @@ class FileManager:
         """
         if type(df) is not pd.DataFrame:
             try:
-                logger.info(f"We are converting {df_name} to pd.DataFrame, type(df): {type(df)}")
+                logger.info(f"[save_my_df] We are converting {df_name} to pd.DataFrame, type(df): {type(df)}")
                 if isinstance(df, dict):
                     # one logical row
                     df =  pd.DataFrame([df])
@@ -133,14 +133,14 @@ class FileManager:
                     # list of rows (dicts)
                     df =  pd.DataFrame(df)
             except Exception as e:
-                logger.error(f"FileManager.save_my_df: Failed to convert {df_name} to pd.DataFrame: {e}")
+                logger.error(f"[save_my_df] Failed to convert {df_name} to pd.DataFrame: {e}")
                 return None
 
         if df is None :
-            logger.warning(f"FileManager.save_my_df: Empty df {df_name}, nothing to save.")
+            logger.warning(f"[save_my_df] Empty df {df_name}, nothing to save.")
             return None
         if df.empty and mode=="a" :
-            logger.warning(f"FileManager.save_my_df: Empty df {df_name}, nothing to save.")
+            logger.warning(f"[save_my_df] Empty df {df_name}, nothing to save.")
             return None
 
         if min_interval_sec is not None:
@@ -161,7 +161,7 @@ class FileManager:
             dir_resolved = FileManager._resolve_dir(dir)
             path = os.path.join(dir_resolved, file_name)
 
-        logger.info(f"[FileManager], Saving DataFrame '{df_name}' to path: {path}")
+        logger.info(f"[save_my_df], Saving DataFrame '{df_name}' to path: {path}")
         df_utils.save_df_to_csv(
             df=df,
             file_path=path,
@@ -226,7 +226,7 @@ class FileManager:
             json.dump(data, f, indent=2, default=str)
 
         os.replace(tmp, path)
-        logger.info(f"[FileManager], Saving JSON '{name}' to path: {path}")
+        logger.info(f"[save_named_json], Saving JSON '{name}' to path: {path}")
 
         FileManager._last_save_times[name] = time.time()
         return path
@@ -253,5 +253,5 @@ class FileManager:
             with open(path, "r") as f:
                 return json.load(f)
         except Exception as e:
-            logger.error(f"Malformed JSON in {path}: {e}")
+            logger.error(f"[save_named_json] Malformed JSON in {path}: {e}")
             return {}
