@@ -19,7 +19,14 @@ paths.log_dir
 
 class DirectoryManager:
 
-    def __init__(self, portfolio_id: str, app_config: dict, mode: str= 'live',alias: str | None = None):
+    def __init__(
+        self,
+        portfolio_id: str,
+        app_config: dict,
+        mode: str = "live",
+        alias: str | None = None,
+        session_date: str | None = None,
+    ):
         logger.info(f"Initializing DirectoryManager")
 
 
@@ -32,7 +39,11 @@ class DirectoryManager:
         runtime_ctx = {
             "portfolio_id": portfolio_id,
             "alias": resolved_alias,
-            "date": datetime.datetime.now().strftime("%Y-%m-%d"),
+            "date": (
+                session_date
+                if session_date
+                else datetime.datetime.now().strftime("%Y-%m-%d")
+            ),
         }
 
         dirs_cfg = app_config.get("dirs", {})

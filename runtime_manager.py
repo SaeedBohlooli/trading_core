@@ -4,6 +4,7 @@ from trading_core.file_manager import FileManager
 from trading_core.config_manager import ConfigManager
 from trading_utils import config_utils
 from trading_utils import ruamel_confg_util
+from trading_utils import date_utils as date_utils_eff
 from typing import Dict
 import time
 logger = logging.getLogger(__name__)
@@ -22,6 +23,12 @@ class RuntimeManager:
 
     DEFAULT_INTERVAL = 60.0  # seconds
 
+    @classmethod
+    def reset_scheduler_state_for_replay(cls) -> None:
+        """Clear is_due / should_run_once bookkeeping (call at each replay session start)."""
+        cls._last_update_times.clear()
+        cls._runtime_flags.clear()
+
     def __init__(self, boot):
         self.boot = boot
         self.portfolio_id = boot.portfolio_id
@@ -35,7 +42,7 @@ class RuntimeManager:
             interval_sec: float | None = None,
             skip_first: bool = False,
     ) -> bool:
-        now = time.time()
+        now = date_utils_eff.effective_monotonic_time()
         interval_sec = interval_sec or cls.DEFAULT_INTERVAL
 
         last = cls._last_update_times.get(key)
@@ -74,14 +81,14 @@ class RuntimeManager:
             skip_first: bool = False,
             min_time_hhmm: int | None = None,  # e.g. 930
     ) -> bool:
-        now = time.time()
+        now = date_utils_eff.effective_monotonic_time()
         interval_sec = interval_sec or cls.DEFAULT_INTERVAL
 
         # -------------------------------------------------
         # Time-of-day gate (HHMM as int, e.g. 930, 1600)
         # -------------------------------------------------
         if min_time_hhmm is not None:
-            now_hhmm = int(datetime.datetime.now().strftime("%H%M"))
+            now_hhmm = int(date_utils_eff.effective_wall_clock_et_naive().strftime("%H%M"))
 
             if now_hhmm < min_time_hhmm:
                 logger.debug(
@@ -119,7 +126,7 @@ class RuntimeManager:
         Subsequent calls return False.
         """
         if min_time_hhmm is not None:
-            now_hhmm = int(datetime.datetime.now().strftime("%H%M"))
+            now_hhmm = int(date_utils_eff.effective_wall_clock_et_naive().strftime("%H%M"))
 
             if now_hhmm < min_time_hhmm:
                 logger.debug(
@@ -150,7 +157,7 @@ class RuntimeManager:
     # RUN NUMBER / METADATA
     # -------------------------------------------------------
     def generate_unique_run_number(self, run_number: int) -> str:
-        now = datetime.datetime.now()
+        now = date_utils_eff.effective_wall_clock_et_naive()
         unique = f"{now:%Y%m%d-%H%M%S}-{run_number}"
         self.application_state['unique_run_number'] = unique
         return unique
@@ -182,28 +189,28 @@ class RuntimeManager:
     # -------------------------------------------------------
     @staticmethod
     def now_hhmm():
-        return int(datetime.datetime.now().strftime("%H%M"))
+        return int(date_utils_eff.effective_wall_clock_et_naive().strftime("%H%M"))
 
     @staticmethod
     def now_hour():
-        return int(datetime.datetime.now().strftime("%H"))
+        return int(date_utils_eff.effective_wall_clock_et_naive().strftime("%H"))
 
     @staticmethod
     def now_date():
-        return datetime.datetime.now().strftime("%Y-%m-%d")
+        return date_utils_eff.effective_wall_clock_et_naive().strftime("%Y-%m-%d")
 
     @staticmethod
     def now_timestamp():
-        return datetime.datetime.now().strftime("%Y-%m-%d__%H-%M")
+        return date_utils_eff.effective_wall_clock_et_naive().strftime("%Y-%m-%d__%H-%M")
 
     @staticmethod
     def now_Y_M_D_H_S():
-        return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        return date_utils_eff.effective_wall_clock_et_naive().strftime("%Y-%m-%d %H:%M:%S")
 
     @staticmethod
     def now_day_of_week():
-        return datetime.datetime.now().strftime("%A")
+        return date_utils_eff.effective_wall_clock_et_naive().strftime("%A")
 
     @staticmethod
     def now_YYYYMMDD():
-        return datetime.datetime.now().strftime("%Y%m%d")
+        return date_utils_eff.effective_wall_clock_et_naive().strftime("%Y%m%d")
