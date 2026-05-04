@@ -14,7 +14,7 @@ async def fetch_user_request_loop(app_config, application_state, interval_sec=3)
                 logger.info("[fetch_user_request_loop] Exiting as requested.")
                 break
             user_request_fetcher.fetch_user_request(app_config, application_state)
-            logger.info("[fetch_user_request_loop] ...")
+            logger.info("[fetch_user_request_loop] user requests are fetched.")
             await asyncio.sleep(interval_sec)
         except Exception as e:
             logger.warning(f"Unexpected error: {e}")
