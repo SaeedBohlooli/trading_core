@@ -40,7 +40,7 @@ class TradingEngine:
                 current_hh_mm_ny = self.runtime.now_hhmm()
                 unique_run_number =  self.runtime.generate_unique_run_number(run_number)
 
-                logger.warning(f"==================== unique_run_number: {unique_run_number}, current_hh_mm_ny: {current_hh_mm_ny}")
+                logger.info(f"==================== unique_run_number: {unique_run_number}, current_hh_mm_ny: {current_hh_mm_ny}")
                 if ib is None:
                     logger.warning("ib is None... so gie a try to reconnect ...")
                     await asyncio.sleep(3)
@@ -49,7 +49,7 @@ class TradingEngine:
 
                 end_time = time.time()
                 run_time_spent = round(end_time - start_time, 2)
-                logger.warning(f'==================== unique_run_number: {unique_run_number}, run_spent_time: {run_time_spent} seconds, no sleep ...')
+                logger.info(f'==================== unique_run_number: {unique_run_number}, run_spent_time: {run_time_spent} seconds, no sleep ...')
 
                 await asyncio.sleep(self.app_config['interval_seconds']['engine_loop'])
             except Exception as e:
