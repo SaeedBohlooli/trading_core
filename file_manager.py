@@ -161,7 +161,7 @@ class FileManager:
             dir_resolved = FileManager._resolve_dir(dir)
             path = os.path.join(dir_resolved, file_name)
 
-        logger.info(f"[save_my_df], Saving DataFrame '{df_name}' to path: {path}")
+        logger.info(f"[save_my_df] Saving DataFrame '{df_name}' to path: {path}")
         df_utils.save_df_to_csv(
             df=df,
             file_path=path,
@@ -226,7 +226,7 @@ class FileManager:
             json.dump(data, f, indent=2, default=str)
 
         os.replace(tmp, path)
-        logger.info(f"[save_named_json], Saving JSON '{name}' to path: {path}")
+        logger.info(f"[save_named_json] Saving JSON '{name}' to path: {path}")
 
         FileManager._last_save_times[name] = time.time()
         return path
