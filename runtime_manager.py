@@ -6,6 +6,10 @@ from trading_utils import config_utils
 from trading_utils import ruamel_confg_util
 from typing import Dict
 import time
+import datetime
+import logging
+
+
 logger = logging.getLogger(__name__)
 
 class RuntimeManager:
@@ -27,44 +31,6 @@ class RuntimeManager:
         self.portfolio_id = boot.portfolio_id
         self.app_config = boot.app_config
         self.application_state = boot.application_state
-
-    @classmethod
-    def _is_due_old(
-            cls,
-            key: str,
-            interval_sec: float | None = None,
-            skip_first: bool = False,
-    ) -> bool:
-        now = time.time()
-        interval_sec = interval_sec or cls.DEFAULT_INTERVAL
-
-        last = cls._last_update_times.get(key)
-
-        # -----------------------------
-        # First time ever
-        # -----------------------------
-        if last is None:
-            cls._last_update_times[key] = now
-            if skip_first:
-                logger.debug(f"[RuntimeManager] {key} first call skipped")
-                return False
-            return True
-
-        # -----------------------------
-        # Normal timing logic
-        # -----------------------------
-        if now - last >= interval_sec:
-            logger.info(f"[RuntimeManager] {key} is due, now-last: {now - last}")
-            cls._last_update_times[key] = now
-            return True
-
-        return False
-
-    import time
-    import datetime
-    import logging
-
-    logger = logging.getLogger(__name__)
 
     @classmethod
     def is_due(
