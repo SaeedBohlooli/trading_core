@@ -4,6 +4,7 @@ import datetime
 
 from trading_utils import market_session
 from trading_core import engine_cycle
+import pytz
 logger = logging.getLogger(__name__)
 
 
@@ -15,7 +16,7 @@ async def market_session_guard_loop(ib, application_state, runtime, interval_sec
     """
     while True:
         if engine_cycle.should_exit(application_state=application_state):
-            logger.info("[MarketSession] Exiting as requested.")
+            logger.info("[market_session_guard_loop] Exiting as requested.")
             break
         try:
             if (application_state.get('is_busy_time', False)  == False and
@@ -24,13 +25,13 @@ async def market_session_guard_loop(ib, application_state, runtime, interval_sec
 
             await asyncio.sleep(interval_sec)
         except Exception as e:
-            logger.exception(f"[MarketSession] refresh failed: {e}")
+            logger.exception(f"[market_session_guard_loop] refresh failed: {e}")
             await asyncio.sleep(interval_sec)
 
 
 async def init_market_session_time(ib, app_config, application_state):
     application_state["market_session"] = await market_session.calculate_market_session(ib)
-    logger.info(f"[MarketSession] Initialized market session: {application_state['market_session']}")
+    logger.info(f"[init_market_session_time] Initialized market session: {application_state['market_session']}")
 
 
 async def refresh_market_session_once_date_changed(ib, application_state):
@@ -38,12 +39,12 @@ async def refresh_market_session_once_date_changed(ib, application_state):
     today = datetime.date.today().isoformat()
 
     if not ms or ms["date"] != today:
-        logger.info(f"[MarketSession] Refreshing market session for date: {today}")
+        logger.info(f"[refresh_market_session_once_date_changed] Refreshing market session for date: {today}")
         application_state["market_session"] = await market_session.calculate_market_session(ib)
 
 async def refresh_market_session(ib, application_state):
     today = datetime.date.today().isoformat()
-    logger.info(f"[MarketSession] Refreshing market session for date: {today}")
+    logger.info(f"[refresh_market_session_once_date_changed] Refreshing market session for date: {today}")
     application_state["market_session"] = await market_session.calculate_market_session(ib)
 
 def is_market_open_based_on_ib(application_state):
@@ -60,13 +61,13 @@ def is_market_open_based_on_ib(application_state):
     """
     ms = application_state.get("market_session", {})
     if not ms:
-        logger.info(f"[MarketSession] No market session info available, assuming market is closed.")
+        logger.info(f"[is_market_open_based_on_ib] No market session info available, assuming market is closed.")
         return False
 
     start = ms.get("start")
     end = ms.get("end")
     if start is None and end is None:
-        logger.info(f"[MarketSession] No start/end info in market session: {ms}, assuming market is closed.")
+        logger.info(f"[is_market_open_based_on_ib] No start/end info in market session: {ms}, assuming market is closed.")
         return False
 
     start = datetime.datetime.fromisoformat(ms["start"])
@@ -83,7 +84,9 @@ def is_market_open_based_on_ib(application_state):
 
 def is_trading_hours_based_on_config(app_config, application_state):
     """Determine if current time is within trading hours based on config."""
-    now = datetime.datetime.now()
+    if app_config.get('market_session_guard_skip', False) == True:
+        return True
+    now = datetime.datetime.now(pytz.timezone("America/New_York"))
     current_hh_mm_ny = int(now.strftime("%H%M"))  # used in config
     trading_hours_cond = app_config.get('market').get('trading_hours')
 
@@ -100,7 +103,7 @@ def can_do_trade_now(app_config, application_state):
     market_is_open = application_state.get('market_session', {}).get('is_open', False)
     if market_is_open == False:
         # market is closed
-        logger.info(f"[MarketSession] Market is closed according to IB data. {application_state.get('market_session', {})}")
+        logger.info(f"[can_do_trade_now] Market is closed according to IB data. {application_state.get('market_session', {})}")
         return False
 
     now = datetime.datetime.now()
@@ -111,13 +114,13 @@ def can_do_trade_now(app_config, application_state):
 
     if current_hh_mm_ny > market_end_hhmm or current_hh_mm_ny < market_start_hhmm:
         # now is before or after market hours
-        logger.info(f"[MarketSession] Current time {current_hh_mm_ny} is outside market hours {market_start_hhmm}-{market_end_hhmm}.")
+        logger.info(f"[can_do_trade_now] Current time {current_hh_mm_ny} is outside market hours {market_start_hhmm}-{market_end_hhmm}.")
         return False
 
     trading_hours_cond = app_config.get('market', {}).get('trading_hours', '1 == 1')
 
     if not eval(trading_hours_cond):
-        logger.info(f"[MarketSession] Current time {current_hh_mm_ny} does not satisfy trading hours condition: {trading_hours_cond}.")
+        logger.info(f"[can_do_trade_now] Current time {current_hh_mm_ny} does not satisfy trading hours condition: {trading_hours_cond}.")
         return False
 
 
