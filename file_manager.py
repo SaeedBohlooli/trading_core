@@ -6,6 +6,7 @@ import time
 from typing import Any, Dict, Optional
 from trading_utils import df_utils
 import pandas as pd
+import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -255,3 +256,18 @@ class FileManager:
         except Exception as e:
             logger.error(f"[save_named_json] Malformed JSON in {path}: {e}")
             return {}
+
+    def save_yaml(content, file_path):
+
+        try:
+            with open(file_path, "w", encoding="utf-8") as f:
+                yaml.safe_dump(
+                    content,
+                    f,
+                    sort_keys=False,  # important for config readability
+                    allow_unicode=True
+                )
+
+            logger.info(f"[save_file] Saved JSON to {file_path}")
+        except Exception as e:
+            logger.error(f"[save_yaml] Malformed JSON in {file_path}: {e}")
