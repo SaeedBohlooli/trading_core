@@ -47,7 +47,7 @@ async def ib_heartbeat_loop(
             app_hb_path.write_text(ts)  # write app heartbeat
 
             if not ib.isConnected():
-                # IB is not connected → do NOT write heartbeat
+                # IB is not connected - > do NOT write heartbeat
                 logger.warning(f"[ib_heartbeat_loop] @@@@@ IB not connected, skipping heartbeat write.")
                 ib = await IBConnector.connect_from_config(app_config, max_attempts=5)
                 await asyncio.sleep(interval_seconds)
@@ -62,7 +62,7 @@ async def ib_heartbeat_loop(
             logger.info(f"[ib_heartbeat_loop] Wrote heartbeat to {ib_heartbeat_file}")
 
         except Exception as ex:
-            # Any exception → skip heartbeat this round
+            # Any exception - > skip heartbeat this round
             # Engine can decide how to react elsewhere
             logger.warning(f"[ib_heartbeat_loop] @@@ IB Heartbeat Loop {ex}")
 

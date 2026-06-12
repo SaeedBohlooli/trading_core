@@ -120,8 +120,8 @@ class FileManager:
         """
         Save DataFrame to CSV.
 
-        - min_interval_sec=None → always save
-        - min_interval_sec=N    → save at most once every N seconds
+        - min_interval_sec=None - > always save
+        - min_interval_sec=N    - > save at most once every N seconds
         """
         if type(df) is not pd.DataFrame:
             try:
@@ -204,8 +204,8 @@ class FileManager:
         """
         Save JSON data to disk.
 
-        - min_interval_sec=None → always save
-        - min_interval_sec=N    → save at most once every N seconds
+        - min_interval_sec=None - > always save
+        - min_interval_sec=N    - > save at most once every N seconds
         """
 
         if min_interval_sec is not None:

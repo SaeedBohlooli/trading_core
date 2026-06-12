@@ -29,7 +29,7 @@ class WSServer:
 
         try:
             async for _ in ws:
-                pass  # WS is one-way for now (server → client)
+                pass  # WS is one-way for now (server - > client)
 
         except Exception as e:
             logger.error(f"[handler] @@@ WS handler error: {e}")

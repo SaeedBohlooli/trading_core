@@ -52,7 +52,7 @@ class DataSaverManager:
 
     async def save_ib_files(self, ib, force: bool = False) -> None:
 
-        # 2) IB post-trade dfs (expensive → throttled)
+        # 2) IB post-trade dfs (expensive - > throttled)
         ib_interval = self.app_config.get("intervals", {}).get("save_ib_files", 0)
         if ib_interval ==0:
             ib_interval = 60 * 1  # default to 1 minutes
