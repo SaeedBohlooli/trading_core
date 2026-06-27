@@ -17,8 +17,8 @@ async def fetch_user_request_loop(app_config, application_state, interval_sec=3)
             logger.info("[fetch_user_request_loop] user requests are fetched.")
             await asyncio.sleep(interval_sec)
         except Exception as e:
-            logger.warning(f"Unexpected error: {e}")
-            logger.error(f"@@@ fetch_user_request_loop error: {traceback.format_exc()}" )
+            logger.warning(f"[fetch_user_request_loop] Unexpected error: {e}")
+            logger.error(f"[fetch_user_request_loop] @@@ error: {traceback.format_exc()}" )
             await asyncio.sleep(interval_sec)
 
 async def process_common_user_request_loop(ib, app_config, application_state, interval_sec=3):
