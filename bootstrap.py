@@ -50,7 +50,10 @@ class Boot:
 
 
         # Load previous state
-        self.application_state = FileManager.load_named_json("application_state")
+        if self.app_config.get("load_application_state_on_boot", False):
+            self.application_state = FileManager.load_named_json("application_state")
+        else:
+            self.application_state = {}
 
         self.data_saver_manager = DataSaverManager(
             ib_dir=self.dirs.ib,
