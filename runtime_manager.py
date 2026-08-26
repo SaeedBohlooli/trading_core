@@ -109,6 +109,7 @@ class RuntimeManager:
         self.app_config = ConfigManager.load(self.portfolio_id)
         self.boot.app_config = self.app_config
         logger.info(f"[RuntimeManager] Config reloaded for portfolio {self.portfolio_id}")
+        logger.debug(f"[RuntimeManager] Config: {self.app_config}")
         return self.app_config
 
 
