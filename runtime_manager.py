@@ -106,10 +106,17 @@ class RuntimeManager:
     # -------------------------------------------------------
     def reload_config(self):
         """Reload config for this portfolio_id."""
+        logger.info(f"[reload_config] Reloading config for portfolio {self.portfolio_id}")
+        load_started_at = time.perf_counter()
         self.app_config = ConfigManager.load(self.portfolio_id)
+        logger.info(
+            f"[reload_config] Config load completed for portfolio {self.portfolio_id} "
+            f"in {time.perf_counter() - load_started_at:.3f}s"
+        )
+        logger.info(f"[reload_config] Config reloaded for portfolio {self.portfolio_id}")
         self.boot.app_config = self.app_config
-        logger.info(f"[RuntimeManager] Config reloaded for portfolio {self.portfolio_id}")
-        logger.debug(f"[RuntimeManager] Config: {self.app_config}")
+        logger.info(f"[reload_config] boot.app_config updated for portfolio {self.portfolio_id}")
+        logger.debug(f"[reload_config] Config: {self.app_config}")
         return self.app_config
 
 
