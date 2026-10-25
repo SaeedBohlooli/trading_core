@@ -6,6 +6,7 @@ from typing import Dict, Any
 
 from trading_core.file_manager import FileManager
 from trading_core.trading_ledger import TradingLedger
+from trading_core.runtime_manager import RuntimeManager
 from trading_utils import ib_posttrade
 from trading_core import engine_cycle
 logger = logging.getLogger(__name__)
@@ -14,6 +15,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DataSaverManager:
     ib_dir: str
+    ib_archive_dir: str
     app_config: Dict[str, Any]
     application_state: Dict[str, Any]
     _last_save_times: Dict[str, float] = field(default_factory=dict)
@@ -64,6 +66,11 @@ class DataSaverManager:
 
         logger.info(f"[DataSaverManager] Save completed (force={force})")
 
+    async def archive_ib_files(self) -> None:
+        logger.info("[DataSaverManager] Archiving IB files ...")
+        ib_posttrade.archive_ib_files(self.ib_dir, self.ib_archive_dir)
+        logger.info("[DataSaverManager] Finished archiving IB files ...")
+
     async def save_once(self, ib, force: bool = False) -> None:
 
         logger.info(f"[DataSaverManager] Save completed (force={force})")
@@ -96,6 +103,9 @@ class DataSaverManager:
                 logger.info("DataSaverManager] Running save_once ...")
                 await self.save_once(ib, force=force_save)
                 logger.info("[DataSaverManager] Finished save_once ...")
+
+                if RuntimeManager.is_due("archive_ib", min_time_hhmm=1550):
+                    await self.archive_ib_files()
 
                 if engine_cycle.should_exit(application_state=self.application_state):
                     logger.info("[market_session_guard_loop] Exiting as requested.")

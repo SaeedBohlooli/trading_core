@@ -57,6 +57,7 @@ class Boot:
 
         self.data_saver_manager = DataSaverManager(
             ib_dir=self.dirs.ib,
+            ib_archive_dir=self.dirs.ib_archive,
             app_config=self.app_config,
             application_state=self.application_state,
         )

@@ -172,6 +172,7 @@ class FileManager:
             tabular=save_tabular,
             keep=keep
         )
+        logger.info(f"[save_my_df] Saving DataFrame '{df_name}' finished.")
         FileManager._last_save_times[df_name] = time.time()
         return path
 
